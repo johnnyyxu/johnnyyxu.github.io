@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Preemptive User-Level Thread Library | Yao Xu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#f2f2f7;--glass:rgba(255,255,255,.42);--glass-h:rgba(255,255,255,.62);
+      --glass-border:rgba(255,255,255,.6);--glass-border-b:rgba(0,0,0,.04);
+      --glass-sh:0 1px 3px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.05);
+      --glass-blur:20px;--glass-spec:rgba(255,255,255,.85);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.55) 0%,transparent 42%);
+      --nav-bg:rgba(242,242,247,.6);
+      --ink:#1d1d1f;--ink-2:#48484a;--ink-3:#8e8e93;--ink-4:#aeaeb2;
+      --blue:#0071e3;--code-bg:rgba(0,0,0,.03);
+      --sans:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+      --head:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+      --mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+      --bg:#000;--glass:rgba(255,255,255,.05);--glass-h:rgba(255,255,255,.09);
+      --glass-border:rgba(255,255,255,.08);--glass-border-b:rgba(255,255,255,.02);
+      --glass-sh:0 1px 3px rgba(0,0,0,.2),0 4px 16px rgba(0,0,0,.25),inset 0 .5px 0 rgba(255,255,255,.04);
+      --glass-blur:24px;--glass-spec:rgba(255,255,255,.12);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 42%);
+      --nav-bg:rgba(0,0,0,.5);
+      --ink:#f5f5f7;--ink-2:#a1a1a6;--ink-3:#6e6e73;--ink-4:#48484a;
+      --blue:#2997ff;--code-bg:rgba(255,255,255,.05);
+    }}
+    :root[data-theme="dark"]{
+      --bg:#000;--glass:rgba(255,255,255,.05);--glass-h:rgba(255,255,255,.09);
+      --glass-border:rgba(255,255,255,.08);--glass-border-b:rgba(255,255,255,.02);
+      --glass-sh:0 1px 3px rgba(0,0,0,.2),0 4px 16px rgba(0,0,0,.25),inset 0 .5px 0 rgba(255,255,255,.04);
+      --glass-blur:24px;--glass-spec:rgba(255,255,255,.12);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 42%);
+      --nav-bg:rgba(0,0,0,.5);
+      --ink:#f5f5f7;--ink-2:#a1a1a6;--ink-3:#6e6e73;--ink-4:#48484a;
+      --blue:#2997ff;--code-bg:rgba(255,255,255,.05);
+    }
+
+    html{scroll-behavior:smooth}
+    body{font-family:var(--sans);background:var(--bg);color:var(--ink);
+      -webkit-font-smoothing:antialiased;line-height:1.7;overflow-x:hidden;
+      transition:background .5s,color .3s}
+    ::selection{background:var(--blue);color:#fff}
+
+    body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+      background:
+        radial-gradient(ellipse 75% 50% at 5% 15%,rgba(0,122,255,.05) 0%,transparent 60%),
+        radial-gradient(ellipse 50% 55% at 92% 8%,rgba(175,82,222,.04) 0%,transparent 55%),
+        radial-gradient(ellipse 55% 45% at 72% 82%,rgba(52,199,89,.03) 0%,transparent 50%);
+    }
+
+    /* Nav */
+    nav{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:200;
+      width:min(calc(100% - 32px),600px);
+      backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);
+      background:var(--nav-bg);border:1px solid var(--glass-border);
+      border-radius:980px;box-shadow:var(--glass-sh);transition:box-shadow .3s}
+    nav::before{content:'';position:absolute;top:0;left:18%;right:18%;height:1px;
+      background:linear-gradient(90deg,transparent,var(--glass-spec),transparent);pointer-events:none}
+    .nv{padding:0 24px;height:46px;display:flex;align-items:center;justify-content:space-between}
+    .n-logo{font-family:var(--head);font-size:.95rem;font-weight:600;letter-spacing:-.02em;
+      color:var(--ink);text-decoration:none}
+    .n-back{font-size:.82rem;color:var(--ink-3);text-decoration:none;
+      display:flex;align-items:center;gap:6px;transition:color .2s}
+    .n-back:hover{color:var(--ink)}
+    .tb{display:flex;align-items:center;justify-content:center;width:32px;height:32px;
+      border-radius:50%;border:none;background:none;color:var(--ink-3);cursor:pointer;transition:all .2s}
+    .tb:hover{background:var(--glass-h);color:var(--ink)}
+    .is{display:none}.im{display:block}
+    @media(prefers-color-scheme:dark){
+      :root:not([data-theme="light"]) .is{display:block}
+      :root:not([data-theme="light"]) .im{display:none}
+    }
+    :root[data-theme="dark"] .is{display:block}
+    :root[data-theme="dark"] .im{display:none}
+    :root[data-theme="light"] .is{display:none}
+    :root[data-theme="light"] .im{display:block}
+
+    /* Article */
+    .art-wrap{max-width:740px;margin:0 auto;padding:100px 24px 80px}
+    .art-hd{margin-bottom:40px}
+    .art-title{font-family:var(--head);font-size:clamp(1.6rem,4vw,2.2rem);
+      font-weight:700;letter-spacing:-.03em;line-height:1.2;margin-bottom:10px}
+    .art-meta{font-size:.82rem;color:var(--ink-3)}
+
+    /* Prose */
+    .prose h1{font-family:var(--head);font-size:1.5rem;font-weight:700;letter-spacing:-.02em;
+      margin:48px 0 16px;line-height:1.3}
+    .prose h2{font-family:var(--head);font-size:1.25rem;font-weight:600;letter-spacing:-.02em;
+      margin:40px 0 14px;line-height:1.3}
+    .prose h3{font-family:var(--head);font-size:1.05rem;font-weight:600;
+      margin:32px 0 12px;line-height:1.4}
+    .prose p{margin-bottom:18px;color:var(--ink-2)}
+    .prose a{color:var(--blue);text-decoration:none}
+    .prose a:hover{text-decoration:underline}
+    .prose img{max-width:100%;height:auto;border-radius:12px;margin:24px 0;
+      box-shadow:var(--glass-sh)}
+    .prose figure{margin:24px 0}
+    .prose figure img{margin:0}
+    .prose ul,.prose ol{margin:0 0 18px 24px;color:var(--ink-2)}
+    .prose li{margin-bottom:6px}
+    .prose blockquote{border-left:3px solid var(--blue);padding:12px 20px;
+      margin:18px 0;background:var(--code-bg);border-radius:0 8px 8px 0;
+      color:var(--ink-3)}
+    .prose strong{font-weight:600;color:var(--ink)}
+    .prose code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);
+      padding:2px 6px;border-radius:4px;color:var(--ink-2)}
+    .prose pre{background:var(--code-bg);border:1px solid var(--glass-border);
+      border-radius:12px;padding:20px 24px;overflow-x:auto;margin:18px 0;
+      font-size:.84rem;line-height:1.6}
+    .prose pre code{background:none;padding:0;font-size:inherit}
+    .prose .highlight pre{background:var(--code-bg);border:1px solid var(--glass-border);
+      border-radius:12px;padding:20px 24px;overflow-x:auto;margin:18px 0}
+    .prose .highlight code{background:none;padding:0}
+    .prose table{width:100%;border-collapse:collapse;margin:18px 0;font-size:.88rem}
+    .prose th,.prose td{padding:10px 14px;border-bottom:1px solid var(--glass-border);
+      text-align:left}
+    .prose th{font-weight:600;color:var(--ink)}
+
+    .art-foot{margin-top:60px;padding-top:24px;border-top:1px solid var(--glass-border);
+      text-align:center}
+    .art-foot a{font-size:.88rem;color:var(--blue);text-decoration:none}
+    .art-foot a:hover{text-decoration:underline}
+
+    @media(max-width:600px){
+      .art-wrap{padding:80px 16px 60px}
+      .prose pre{padding:14px 16px;border-radius:8px;font-size:.78rem}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nv">
+    <a href="../../index.html" class="n-logo">Yao Xu</a>
+    <div style="display:flex;align-items:center;gap:8px">
+      <a href="../../index.html" class="n-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Home
+      </a>
+      <button class="tb" id="tb" aria-label="Toggle theme">
+        <svg class="is" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="im" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main class="art-wrap">
+  <header class="art-hd">
+    <h1 class="art-title">A Preemptive User-Level Thread Library</h1>
+    <div class="art-meta">May 1, 2023 · 15 min read</div>
+  </header>
+  <div class="prose">
+    <h1 id="repo-link">Repo Link</h1>
+<!-- https://github.com/YaoGH-code/uthread -->
+<h1 id="overview">Overview</h1>
+<p>This project aims to provide a robust preemptive user-level thread library that simplifies the creation and management of user-level threads. By utilizing interfaces such as &ldquo;uthread_create&rdquo; and &ldquo;uthread_join,&rdquo; users familiar with POSIX threads can easily develop programs with user-level parallelism. The context of user-level threads in this project is implemented through a combination of our custom &ldquo;uthread&rdquo; data structure and the &ldquo;ucontext&rdquo; functionality provided by POSIX. Additionally, a lock-free data structure is employed to maintain each worker thread efficiently. The scheduling of user threads relies heavily on signals in this project. When a signal arrives, it indicates the start of the next scheduling round for each worker thread. The stack prepared by the kernel for the signal handler is crucial for smooth context switching. To ensure thread safety at the user level, interfaces such as &ldquo;umalloc,&rdquo; &ldquo;uprintf,&rdquo; and &ldquo;uthread_mutex_lock&rdquo; are provided. These interfaces facilitate safe memory allocation, printing, and mutual exclusion. This thread library is compatible with machines running MacOS or Linux with x86 architecture CPUs. Extensive testing has been conducted to verify the correctness and scalability of the system.</p>
+<h1 id="background">Background</h1>
+<p>With the increasing prevalence of multi-core processors, high-performance computing demands, scalability requirements, user expectations for responsiveness, and cost-efficiency considerations, concurrent programming has become increasingly essential. To achieve concurrency, multi-threading has emerged as a popular approach, primarily due to its ability to leverage the shared memory model and its lower resource consumption. POSIX threads (pthreads) have gained widespread adoption for multi-threading implementations due to their efficiency, scalability, reliability, and broad support across various operating systems. However, effectively harnessing pthreads for efficient concurrency still presents significant challenges.</p>
+<p>One challenge arises when the number of concurrent tasks increases, potentially causing significant scheduling overhead and overwhelming hardware resources. The thread pool technique has long been used to address this issue, where it abstracts each concurrent task into a unit of work and adds it to a shared work queue. From this queue, threads in the pool grab one unit of work and finish executing it, then proceed to the next until the queue is empty. The thread pool can be a neat solution to deal with a huge quantity of tasks while keeping the scheduling overhead bounded. However, it may be insufficient when the running spans of each concurrent task are highly variable. This is especially true if we aim to achieve user-level multitasking, where we can have long-running or persistent tasks. The thread pool may not be a wise solution here, as the tasks that run much longer than the others can cause drastic delay to those far down in the queue, which, in the worst case, may never be executed. That’s because in the thread pool model subsequent tasks are not executed until all preceding tasks have been completed. If we were still to use pthreads naively, we would end up spawning hundreds of threads again, one for each task, producing immense overhead and hurting performance.</p>
+<p>Clearly, the thread pool model should be preserved. But how to break the execution of long-running blocking tasks without compromising correctness to allow other tasks to run? To answer this question, we must introduce the idea of user-level threads. In this project, we turn each unit of work in the work queue into an execution context. Each worker thread (POSIX thread) has a task queue stores user level tasks that assigned to it when user create a user level thread with uthread create. These user level tasks are structures where we turn each unit of work in the work queue (we are still sticking to the thread pool model) into an execution context, keeping track of the full state of each concurrently running task, and instead of mapping one task to one dedicated POSIX thread, we dynamically decide which POSIX thread in the pool should execute which task, so that we can safely break the execution of one task, saving its context back to the shared queue, and start the execution of the next user-level thread, loading the corresponding context from the queue.</p>
+<h1 id="approach">Approach</h1>
+<p>Before going into the core part of this project, some initialization and helper function will be introduced first. This user level thread library requires some initialization before starting to create and schedule user level threads. The runtime start function shown below is the first function will be called to initialize a structure called runtime which is defined in uthread.c file that contains some run time information. First, there will be only one thread enter this function. We record this main thread as the master worker thread (pthread) and mark the start flag to one so that the runtime will only be initialized once. Then, in the for loop below, as many worker threads (pthread) as there are CPU cores will be created. From a perspective of the user level thread library, these worker threads are managed by struct worker. There are three important data structure associated with each worker thread which are ID, pthread id and a linked list contains struct uthread. ID is a number from 0 to number of cores - 1 which is assigned when creating the worker thread. pthread id is just a pthread t type number which returned when pthread create function is called. The linked list contains structures (struct uthread) that describes each user level thread assigned to this worker. How user level thread is defined and implemented in this library will covered later in much more details. (line 1-line 28) After initializing the run time structure and all worker threads, we installed two signal handlers for SIGALRM 3 and SIGUSR1 for worker threads. SIGALRM combined with SIGUSR1 is acting as a timer which is used to notify worker threads to schedule a new user level thread from its linked list. (line 31-line 58)</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">runtime_start</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">runtime</span><span class="p">.</span><span class="n">master</span> <span class="o">=</span> <span class="nf">pthread_self</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="n">runtime</span><span class="p">.</span><span class="n">started</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// get core count
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">runtime</span><span class="p">.</span><span class="n">worker_count</span> <span class="o">=</span> <span class="p">(</span><span class="kt">uint32_t</span><span class="p">)</span><span class="nf">sysconf</span><span class="p">(</span><span class="n">_SC_NPROCESSORS_ONLN</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// start as many works as cores
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// allocate memory for workers
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">runtime</span><span class="p">.</span><span class="n">workers</span> <span class="o">=</span> <span class="nf">_umalloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">worker</span><span class="p">)</span> <span class="o">*</span> <span class="n">runtime</span><span class="p">.</span><span class="n">worker_count</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// initialize workers
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">id</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">;</span> <span class="n">id</span> <span class="o">&lt;</span> <span class="n">runtime</span><span class="p">.</span><span class="n">worker_count</span><span class="p">;</span> <span class="n">id</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">worker</span> <span class="o">*</span><span class="n">w</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">runtime</span><span class="p">.</span><span class="n">workers</span><span class="p">[</span><span class="n">id</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// install worker id
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">w</span><span class="o">-&gt;</span><span class="n">id</span> <span class="o">=</span> <span class="n">id</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// initialize the work queue
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// create a dummy uthread that will stay as the head of the work queue
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">w</span><span class="o">-&gt;</span><span class="n">head</span> <span class="o">=</span> <span class="nf">_umalloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">uthread</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// initialize the dummy uthread
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// this dummny uthread does not have an id and will never be exposed to the user
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">w</span><span class="o">-&gt;</span><span class="n">head</span><span class="o">-&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="n">w</span><span class="o">-&gt;</span><span class="n">head</span><span class="p">;</span> <span class="c1">// circular queue
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nf">memset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">w</span><span class="o">-&gt;</span><span class="n">head</span><span class="o">-&gt;</span><span class="n">ucon</span><span class="p">,</span> <span class="mi">0</span> <span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">ucontext_t</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// set the dummy uthread as the current thread in execution
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">w</span><span class="o">-&gt;</span><span class="n">head</span><span class="o">-&gt;</span><span class="n">state</span> <span class="o">=</span> <span class="n">USTATE_RUNNING</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">w</span><span class="o">-&gt;</span><span class="n">cur</span> <span class="o">=</span> <span class="n">w</span><span class="o">-&gt;</span><span class="n">head</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// start the pthread
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nf">pthread_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">w</span><span class="o">-&gt;</span><span class="n">pthread_id</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">dummy</span><span class="p">,</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">id</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// install signal handlers
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">struct</span> <span class="n">sigaction</span> <span class="n">sa_alrm</span><span class="p">,</span> <span class="n">sa_usr1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nf">memset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sa_alrm</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">sa_alrm</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">memset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sa_usr1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">sa_usr1</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="n">sa_usr1</span><span class="p">.</span><span class="n">sa_flags</span> <span class="o">=</span> <span class="n">SA_SIGINFO</span> <span class="o">|</span> <span class="n">SA_RESTART</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">sa_usr1</span><span class="p">.</span><span class="n">sa_sigaction</span> <span class="o">=</span> <span class="n">scheduler</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">sigfillset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sa_usr1</span><span class="p">.</span><span class="n">sa_mask</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">sigaction</span><span class="p">(</span><span class="n">SIGUSR1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">sa_usr1</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">sa_alrm</span><span class="p">.</span><span class="n">sa_flags</span> <span class="o">=</span> <span class="n">SA_RESTART</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">sa_alrm</span><span class="p">.</span><span class="n">sa_handler</span> <span class="o">=</span> <span class="n">sigalrm_handler</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">sigfillset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sa_alrm</span><span class="p">.</span><span class="n">sa_mask</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">sigaction</span><span class="p">(</span><span class="n">SIGALRM</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">sa_alrm</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// create a periodic timer
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">struct</span> <span class="n">itimerval</span> <span class="n">timer</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cp">#define MS (1000)
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>    <span class="c1">// Configure the timer to fire every 10ms
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">timer</span><span class="p">.</span><span class="n">it_value</span><span class="p">.</span><span class="n">tv_sec</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">timer</span><span class="p">.</span><span class="n">it_value</span><span class="p">.</span><span class="n">tv_usec</span> <span class="o">=</span> <span class="n">MS</span> <span class="o">*</span> <span class="mi">10</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">timer</span><span class="p">.</span><span class="n">it_interval</span><span class="p">.</span><span class="n">tv_sec</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">timer</span><span class="p">.</span><span class="n">it_interval</span><span class="p">.</span><span class="n">tv_usec</span> <span class="o">=</span> <span class="n">MS</span> <span class="o">*</span> <span class="mi">10</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// start the timer
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">while</span> <span class="p">(</span><span class="n">runtime</span><span class="p">.</span><span class="n">ready_count</span> <span class="o">!=</span> <span class="n">runtime</span><span class="p">.</span><span class="n">worker_count</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">setitimer</span><span class="p">(</span><span class="n">ITIMER_REAL</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">timer</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>Following function sigalrm handler defined in uthread.c described how these two signals are used in terms
+of scheduling user level threads. SIGALRM is generated by the OS based on the scheduling round period
+we defined when setting the timer. Since the OS will send the SIGALRM to a random worker thread that
+is running in the current process context and we want all worker threads to know they should schedule the
+next user level thread, the thread receives SIGALRM will send a SIGALRM signal to the master worker
+thread and this master worker thread will send SIGUSR1 to each of other worker threads to notify them a
+new scheduling round comes.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">sigalrm_handler</span><span class="p">(</span><span class="kt">int</span> <span class="n">signum</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="nf">pthread_self</span><span class="p">()</span> <span class="o">!=</span> <span class="n">runtime</span><span class="p">.</span><span class="n">master</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// not master
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nf">pthread_kill</span><span class="p">(</span><span class="n">runtime</span><span class="p">.</span><span class="n">master</span><span class="p">,</span> <span class="n">SIGALRM</span><span class="p">);</span> <span class="c1">// forward SIGALRM to the master thread
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// bcast SIGUSR1 to all workers to start the scheduler
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">runtime</span><span class="p">.</span><span class="n">worker_count</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nf">pthread_kill</span><span class="p">(</span><span class="n">runtime</span><span class="p">.</span><span class="n">workers</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">pthread_id</span><span class="p">,</span> <span class="n">SIGUSR1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>The second signal handler which is used to process SIGUSR1 is registered as a function called scheduler. Back to runtime start function, this signal handler is installed by sigaction with a flag called
+SA SIGINFO. When the SA SIGINFO flag is specified in act.sa flags, the signal handler address is passed
+via the act.sa sigaction field. This handler takes three arguments, as follows:</p>
+<ul>
+<li><span style="color:orange">sig</span>: The number of the signal that caused invocation of the handler.</li>
+<li><span style="color:orange">info</span>: A pointer to a siginfo t, which is a structure containing further information about the signal, as described below.</li>
+<li><span style="color:orange">ucontext</span>: This is a pointer to a ucontext t structure, cast to void *. The structure pointed to by this field contains signal context information that was saved on the user-space stack by the kernel.</li>
+</ul>
+<p>This is why our SIGUSR1 handler (scheduler) has three arguments and the third argument is very important because of the following reason:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure  >
+  <img alt="Image alt" 
+               src="sighand.png"
+               width="760"
+               height="488"
+               loading="lazy" data-zoomable /></div>
+  </div></figure>
+</p>
+<p>The above graph shows the core process of user level scheduling. First, ”UC” stands for ”user level thread context”.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">uthread</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">state</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">char</span> <span class="o">*</span><span class="n">stack</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">void</span> <span class="o">*</span><span class="n">retptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">void</span> <span class="o">*</span><span class="n">aux_rsp</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">char</span> <span class="o">*</span><span class="n">aux_stack</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">ucontext_t</span> <span class="n">ucon</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">uthread</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></div><p>User level thread context is maintained with a structure called struct uthread defined in uthread.c. Each user level thread has its own ID, state, stack, a ucontext t struct and a pointer to the next struct uthread in the current queue. ucontext t is a structure defined by POSIX used to save context including general purpose register and SIMD registers etc. Back to the above graph, when a worker thread received SIGUSR1, the operating system will push three inputs for the signal handler onto its stack which can be used within the signal handler. The third one is the new user level context that was running on CPU. It will be casted to a ucontext t type variable and saved back to the user level thread context queue bu the scheduler. It will also push the next scheduled user level thread context to the stack to replace the user level thread context pushed by the OS. When signal handler returns, a system call called sigreturn will store the new context
+back to CPU and continue execuation, and user level context switch is achieved.</p>
+<p>Two interfaces most related to users are uthread_create and uthread_join. The following chunk of code is the implementation of the uthread_create function. For each newly created user level thread, a stack is allocated on the heap for later execution. The execution context will also be prepared by setting RSP to newly allocated stack, setting RDI to input and setting RIP to the function that user would run. On Linux, code segment register and stack segment register are also need to be set manually since Linux will restore context to CPU with value specified in the ucontext_t structure including CS and SS register. On Linux, there is a mcontext_t structure defined inside of the ucontext_t structure under usr/include/x86_64-linux-gnu/sys/ucontext.h. This structure defines all registers that can be managed by using ucontext. User can access or change REG CSGSFS to manage CS and SS register. However, there is a invisible padding inside of this field to user which took us a while to figure out how to store CS and SS register. Unlike Linux, MacOS manage CS and SS register automatically.</p>
+<p>Finally, a round robin algorithm is used to assign new user context to work thread. A lock free operation is used to add newly created user level context after the first element in a worker’s queue by using _cas function defined in asm.s.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cp">#define UTHREAD_STACK_SIZE (1024 * 1024 * 8)
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define UTHREAD_SCRATCH_SPACE_SIZE (1024 * 4)
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span><span class="kt">void</span> <span class="nf">uthread_create</span><span class="p">(</span><span class="kt">uthread_t</span> <span class="o">*</span><span class="n">id</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="p">(</span><span class="o">*</span><span class="n">func</span><span class="p">)(</span><span class="kt">void</span> <span class="o">*</span><span class="p">),</span> <span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">runtime</span><span class="p">.</span><span class="n">started</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">runtime_start</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">uthread</span> <span class="o">*</span><span class="n">u</span> <span class="o">=</span> <span class="nf">_umalloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">uthread</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">memset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">u</span><span class="o">-&gt;</span><span class="n">ucon</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">ucontext_t</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// assign id
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">u</span><span class="o">-&gt;</span><span class="n">id</span> <span class="o">=</span> <span class="n">runtime</span><span class="p">.</span><span class="n">next_uid</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// allcoate stack on heap
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">u</span><span class="o">-&gt;</span><span class="n">stack</span> <span class="o">=</span> <span class="nf">_umalloc</span><span class="p">(</span><span class="n">UTHREAD_STACK_SIZE</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// initailze the stack
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">uint64_t</span> <span class="o">*</span><span class="n">rsp</span> <span class="o">=</span> <span class="p">(</span><span class="kt">uint64_t</span> <span class="o">*</span><span class="p">)(</span><span class="nf">ALIGN16</span><span class="p">(</span><span class="n">u</span><span class="o">-&gt;</span><span class="n">stack</span> <span class="o">+</span> <span class="n">UTHREAD_STACK_SIZE</span><span class="p">)</span> <span class="o">-</span> <span class="mi">8</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// prepare the return address
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="o">*</span><span class="n">rsp</span> <span class="o">=</span> <span class="p">(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">cleanup</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// allocate the aux stack
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">u</span><span class="o">-&gt;</span><span class="n">aux_stack</span> <span class="o">=</span> <span class="nf">_umalloc</span><span class="p">(</span><span class="n">UTHREAD_SCRATCH_SPACE_SIZE</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// initailize the aux stack
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">u</span><span class="o">-&gt;</span><span class="n">aux_rsp</span> <span class="o">=</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)(</span><span class="nf">ALIGN16</span><span class="p">(</span><span class="n">u</span><span class="o">-&gt;</span><span class="n">aux_stack</span> <span class="o">+</span> <span class="n">UTHREAD_SCRATCH_SPACE_SIZE</span><span class="p">));</span> <span class="c1">// do not subtract 8 here
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// initialize the execution context
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">u</span><span class="o">-&gt;</span><span class="n">ucon</span><span class="p">.</span><span class="n">uc_mcontext</span><span class="p">.</span><span class="n">gregs</span><span class="p">[</span><span class="n">REG_RSP</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kt">greg_t</span><span class="p">)</span><span class="n">rsp</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">u</span><span class="o">-&gt;</span><span class="n">ucon</span><span class="p">.</span><span class="n">uc_mcontext</span><span class="p">.</span><span class="n">gregs</span><span class="p">[</span><span class="n">REG_RDI</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kt">greg_t</span><span class="p">)</span><span class="n">arg</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">u</span><span class="o">-&gt;</span><span class="n">ucon</span><span class="p">.</span><span class="n">uc_mcontext</span><span class="p">.</span><span class="n">gregs</span><span class="p">[</span><span class="n">REG_RIP</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kt">greg_t</span><span class="p">)</span><span class="n">func</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">u</span><span class="o">-&gt;</span><span class="n">ucon</span><span class="p">.</span><span class="n">uc_mcontext</span><span class="p">.</span><span class="n">gregs</span><span class="p">[</span><span class="n">REG_CSGSFS</span><span class="p">]</span> <span class="o">=</span> <span class="nf">_cs</span><span class="p">()</span> <span class="o">|</span> <span class="p">((</span><span class="kt">uint64_t</span><span class="p">)</span><span class="nf">_ss</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="mi">48</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// initialize the state
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">u</span><span class="o">-&gt;</span><span class="n">state</span> <span class="o">=</span> <span class="n">USTATE_SLEEPING</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// pick a worker and insert the uthread into ist work queue
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">struct</span> <span class="n">worker</span> <span class="o">*</span><span class="n">w</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">runtime</span><span class="p">.</span><span class="n">workers</span><span class="p">[</span><span class="n">runtime</span><span class="p">.</span><span class="n">next_worker</span><span class="o">++</span> <span class="o">%</span> <span class="n">runtime</span><span class="p">.</span><span class="n">worker_count</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">uthread</span> <span class="o">*</span><span class="n">head</span> <span class="o">=</span> <span class="n">w</span><span class="o">-&gt;</span><span class="n">head</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// add to the work queue (always add after the head)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">struct</span> <span class="n">uthread</span> <span class="o">*</span><span class="n">old_next</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">do</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">old_next</span> <span class="o">=</span> <span class="n">head</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">;</span> <span class="c1">// the next uthread of the head is guaranteed to be valid
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">u</span><span class="o">-&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="n">old_next</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="nf">_cas</span><span class="p">(</span><span class="o">&amp;</span><span class="n">head</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">,</span> <span class="p">(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">old_next</span><span class="p">,</span> <span class="p">(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">u</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">old_next</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="o">*</span><span class="n">id</span> <span class="o">=</span> <span class="p">(</span><span class="kt">uthread_t</span><span class="p">)</span><span class="n">u</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>There are three function in this library are about resource recycling. cleanup function is the return address after of each user level thread, it set the current user level thread to USTATE_JOINABLE. User level thread with USTATE JOINABLE won’t be recycled immediately. After uthread join is called, user level thread will be set to USTATE_JOINED.</p>
+<p>In each worker’s queue, the dummy head is a user level context that is responsible for freeing resources. When
+this user level context is scheduled, it will look for user level context that is in USTATE_JOINABLE and
+USTATE_JOINED. If the uthread is in USTATE_JOINABLE, the stack will freed because the JOINABLE
+uthread cannot possibly be running since they are mapped to a single worker who’s only able to do one
+thing at a time. That means the uthread will no longer be schedulable from now on because it can only be
+run if the scheduler was to schedule it later, which will not happen, whereby it is safe to free its stack and
+execution context. If the uthread is in USTATE_JOINED, the struct uthread will be freed since when dummy
+is running, the scheduler must not be running since they again share the same worker, thus, if dummy sees
+one uthread in the JOINED state, that uthread cannot be scheduled to run again, since first the scheduler is
+uninterruptible, which eliminates the intermediate state being observed by dummy and second the next time
+scheduler tries to schedule it will definitely also see it as JOINED and do nothing. However, one thing to
+notice is that we have to make the JOINED uthread unreachable and then deallocate the memory otherwise,
+when the scheduler step through it may encounter invalid memory.</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure  >
+  <img alt="Image alt" 
+               src="queue.png"
+               width="760"
+               height="162"
+               loading="lazy" data-zoomable /></div>
+  </div></figure>
+</p>
+<p>The following graph shows the life cycle of a user level thread. In summary, a stack and other necessary data structures are allocated on the heap first. Then, the ucontext structure will be added into the queue of one of the workers and waiting to be scheduled. After execuation finished, it will jump to clean up function
+and wait to be joined and resource recycled.</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure  >
+  <img alt="Image alt" 
+               src="lifecycle.png"
+               width="760"
+               height="555"
+               loading="lazy" data-zoomable /></div>
+  </div></figure>
+</p>
+<p>Here I wish to mention a few obstacles we have met till now. Initially, we thought of implementing work queues using doubly-linked lock-free lists; however, it turned out that there had been yet no known solutions to this problem, which would not have been if a compare-and-swap instruction had been given by the architecture that can operate on two discounted addresses, and most of the articles and papers being widely accepted were just singly-linked lists. Thus, we decided to not go any further but to fall back to singly-linked lists, which did not appear to be any simpler, especially when it came to the deleting part, investigating which we got to know about the differences between lock-free and wait-free. After that, we decided to get around that, avoiding a deletion from happening in parallel with insertions or another deletions. That was achieved by constraining the insertion to only taking place between the head of the list and the second to the head. As for the deletion, we spawn another user thread during the run-time initialization that&rsquo;s not exposed to the user and is solely responsible for performing the deletion, and we call it the garbage collector, and an important constraint we put on this to prevent deletions and insertions from interfering each other on the second node, we forced the deletion to always start from the third node. In this way, we have a lock-free singly-linked list that can be added to in a concurrent lock-free manner. Then, when implementing uthread_join, and uthread_detach that involed traversing the work queue to verify the validity of a given uthread ID, we considered using the Linux RCU to better read-mostly efficiency and implemented it, but we eventually decided to revert back to having the user responsible for properly managing the IDs since the help of the RCU in our case was not conspicuously seen while it largely added to the code complexity and made the code potentially more error-prone in later stages. Then we faced the serious issue of not freeing the memory fast enough to make room for newly spawned threads, to which we came up with the solution that has each uthread free its own stack during the clean-up phase (a snippet of inline Assembly freeing the stack and saving the return value without needing a stack via using munmap syscall exploiting the fact that the syscall happens on the kernel stack).</p>
+<h2 id="results">Results</h2>
+<p>First test (following two graphs) is using fixed amount of uthread with different number worker thread to check the scalability of this library on machines with different of number of cores. We created 4000 uthreads that each calculates Fib 30 with different number of workers. This test is done on GHC machines(CPU: i7-9700 8 cores).
+Figure 4 shows the total execution time of Fib 30 with 4000 uthreads and 1,2,3,4,5,6 and 7 workers. Figure 5 shows the linear speed up in term of doing same amount of work when we are using more workers, which meet our expectation since more workers means more execution unit available for uthreads and more concurrency, just like more cores available for pthreads. It shows the correctness of user level context switching, efficiency of the scheduling mechanism and good scalability of this library on a 8 core machine.</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure  >
+  <img alt="Image alt" 
+               src="Execution_time_hub6869e153def85892dbb27351402799c_27375_f3bfb4881b9bbe390def5b82bad963f0.webp"
+               width="600"
+               height="390"
+               loading="lazy" data-zoomable /></div>
+  </div></figure>
+</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure  >
+  <img alt="Image alt" 
+               src="speedup.png"
+               width="600"
+               height="390"
+               loading="lazy" data-zoomable /></div>
+  </div></figure>
+
+The second test is using fixed amount of workers with different number of uthreads to check the scalability of this library. We created 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000 uthreads that each calculates Fib 30 based on same number of workers. This test is done on GHC machines. Figure 6 shows the execution time of Fib 30 with 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000 uthreads and 7 workers. We can see the execution time is increasing in a linear way. This means when users are creating more uthreads, the system can provide stable scheduling and performance without meeting any memory or scheduling bottleneck. In extreme case, a system with same hardware configuration as GHC machines can support 200000 uthreads running at the same time.</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure  >
+  <img alt="Image alt" 
+               src="exe_time_huc5f0a8a855a8a650de468e811acc24b2_28942_af0a8236d561f19e30e7a97b9ec47119.webp"
+               width="600"
+               height="390"
+               loading="lazy" data-zoomable /></div>
+  </div></figure>
+</p>
+<h2 id="reference">Reference</h2>
+<p>Sundell, H., &amp; Tsigas, P. (2008). Lock-free deques and doubly linked lists. Journal of Parallel and Distributed
+Computing, 68(7), 1008–1020. <a href="https://doi.org/10.1016/j.jpdc.2008.03.001" target="_blank" rel="noopener">https://doi.org/10.1016/j.jpdc.2008.03.001</a></p>
+  </div>
+  <div class="art-foot">
+    <a href="../../index.html">← Back to Home</a>
+  </div>
+</main>
+
+<script>
+const r=document.documentElement,s=localStorage.getItem('theme');
+if(s)r.setAttribute('data-theme',s);
+document.getElementById('tb').onclick=()=>{
+  const c=r.getAttribute('data-theme'),d=matchMedia('(prefers-color-scheme:dark)').matches,
+  n=!c?(d?'light':'dark'):c==='dark'?'light':'dark';
+  r.setAttribute('data-theme',n);localStorage.setItem('theme',n)};
+</script>
+</body>
+</html>

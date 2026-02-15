@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Locks | Yao Xu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#f2f2f7;--glass:rgba(255,255,255,.42);--glass-h:rgba(255,255,255,.62);
+      --glass-border:rgba(255,255,255,.6);--glass-border-b:rgba(0,0,0,.04);
+      --glass-sh:0 1px 3px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.05);
+      --glass-blur:20px;--glass-spec:rgba(255,255,255,.85);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.55) 0%,transparent 42%);
+      --nav-bg:rgba(242,242,247,.6);
+      --ink:#1d1d1f;--ink-2:#48484a;--ink-3:#8e8e93;--ink-4:#aeaeb2;
+      --blue:#0071e3;--code-bg:rgba(0,0,0,.03);
+      --sans:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+      --head:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+      --mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+      --bg:#000;--glass:rgba(255,255,255,.05);--glass-h:rgba(255,255,255,.09);
+      --glass-border:rgba(255,255,255,.08);--glass-border-b:rgba(255,255,255,.02);
+      --glass-sh:0 1px 3px rgba(0,0,0,.2),0 4px 16px rgba(0,0,0,.25),inset 0 .5px 0 rgba(255,255,255,.04);
+      --glass-blur:24px;--glass-spec:rgba(255,255,255,.12);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 42%);
+      --nav-bg:rgba(0,0,0,.5);
+      --ink:#f5f5f7;--ink-2:#a1a1a6;--ink-3:#6e6e73;--ink-4:#48484a;
+      --blue:#2997ff;--code-bg:rgba(255,255,255,.05);
+    }}
+    :root[data-theme="dark"]{
+      --bg:#000;--glass:rgba(255,255,255,.05);--glass-h:rgba(255,255,255,.09);
+      --glass-border:rgba(255,255,255,.08);--glass-border-b:rgba(255,255,255,.02);
+      --glass-sh:0 1px 3px rgba(0,0,0,.2),0 4px 16px rgba(0,0,0,.25),inset 0 .5px 0 rgba(255,255,255,.04);
+      --glass-blur:24px;--glass-spec:rgba(255,255,255,.12);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 42%);
+      --nav-bg:rgba(0,0,0,.5);
+      --ink:#f5f5f7;--ink-2:#a1a1a6;--ink-3:#6e6e73;--ink-4:#48484a;
+      --blue:#2997ff;--code-bg:rgba(255,255,255,.05);
+    }
+
+    html{scroll-behavior:smooth}
+    body{font-family:var(--sans);background:var(--bg);color:var(--ink);
+      -webkit-font-smoothing:antialiased;line-height:1.7;overflow-x:hidden;
+      transition:background .5s,color .3s}
+    ::selection{background:var(--blue);color:#fff}
+
+    body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+      background:
+        radial-gradient(ellipse 75% 50% at 5% 15%,rgba(0,122,255,.05) 0%,transparent 60%),
+        radial-gradient(ellipse 50% 55% at 92% 8%,rgba(175,82,222,.04) 0%,transparent 55%),
+        radial-gradient(ellipse 55% 45% at 72% 82%,rgba(52,199,89,.03) 0%,transparent 50%);
+    }
+
+    /* Nav */
+    nav{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:200;
+      width:min(calc(100% - 32px),600px);
+      backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);
+      background:var(--nav-bg);border:1px solid var(--glass-border);
+      border-radius:980px;box-shadow:var(--glass-sh);transition:box-shadow .3s}
+    nav::before{content:'';position:absolute;top:0;left:18%;right:18%;height:1px;
+      background:linear-gradient(90deg,transparent,var(--glass-spec),transparent);pointer-events:none}
+    .nv{padding:0 24px;height:46px;display:flex;align-items:center;justify-content:space-between}
+    .n-logo{font-family:var(--head);font-size:.95rem;font-weight:600;letter-spacing:-.02em;
+      color:var(--ink);text-decoration:none}
+    .n-back{font-size:.82rem;color:var(--ink-3);text-decoration:none;
+      display:flex;align-items:center;gap:6px;transition:color .2s}
+    .n-back:hover{color:var(--ink)}
+    .tb{display:flex;align-items:center;justify-content:center;width:32px;height:32px;
+      border-radius:50%;border:none;background:none;color:var(--ink-3);cursor:pointer;transition:all .2s}
+    .tb:hover{background:var(--glass-h);color:var(--ink)}
+    .is{display:none}.im{display:block}
+    @media(prefers-color-scheme:dark){
+      :root:not([data-theme="light"]) .is{display:block}
+      :root:not([data-theme="light"]) .im{display:none}
+    }
+    :root[data-theme="dark"] .is{display:block}
+    :root[data-theme="dark"] .im{display:none}
+    :root[data-theme="light"] .is{display:none}
+    :root[data-theme="light"] .im{display:block}
+
+    /* Article */
+    .art-wrap{max-width:740px;margin:0 auto;padding:100px 24px 80px}
+    .art-hd{margin-bottom:40px}
+    .art-title{font-family:var(--head);font-size:clamp(1.6rem,4vw,2.2rem);
+      font-weight:700;letter-spacing:-.03em;line-height:1.2;margin-bottom:10px}
+    .art-meta{font-size:.82rem;color:var(--ink-3)}
+
+    /* Prose */
+    .prose h1{font-family:var(--head);font-size:1.5rem;font-weight:700;letter-spacing:-.02em;
+      margin:48px 0 16px;line-height:1.3}
+    .prose h2{font-family:var(--head);font-size:1.25rem;font-weight:600;letter-spacing:-.02em;
+      margin:40px 0 14px;line-height:1.3}
+    .prose h3{font-family:var(--head);font-size:1.05rem;font-weight:600;
+      margin:32px 0 12px;line-height:1.4}
+    .prose p{margin-bottom:18px;color:var(--ink-2)}
+    .prose a{color:var(--blue);text-decoration:none}
+    .prose a:hover{text-decoration:underline}
+    .prose img{max-width:100%;height:auto;border-radius:12px;margin:24px 0;
+      box-shadow:var(--glass-sh)}
+    .prose figure{margin:24px 0}
+    .prose figure img{margin:0}
+    .prose ul,.prose ol{margin:0 0 18px 24px;color:var(--ink-2)}
+    .prose li{margin-bottom:6px}
+    .prose blockquote{border-left:3px solid var(--blue);padding:12px 20px;
+      margin:18px 0;background:var(--code-bg);border-radius:0 8px 8px 0;
+      color:var(--ink-3)}
+    .prose strong{font-weight:600;color:var(--ink)}
+    .prose code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);
+      padding:2px 6px;border-radius:4px;color:var(--ink-2)}
+    .prose pre{background:var(--code-bg);border:1px solid var(--glass-border);
+      border-radius:12px;padding:20px 24px;overflow-x:auto;margin:18px 0;
+      font-size:.84rem;line-height:1.6}
+    .prose pre code{background:none;padding:0;font-size:inherit}
+    .prose .highlight pre{background:var(--code-bg);border:1px solid var(--glass-border);
+      border-radius:12px;padding:20px 24px;overflow-x:auto;margin:18px 0}
+    .prose .highlight code{background:none;padding:0}
+    .prose table{width:100%;border-collapse:collapse;margin:18px 0;font-size:.88rem}
+    .prose th,.prose td{padding:10px 14px;border-bottom:1px solid var(--glass-border);
+      text-align:left}
+    .prose th{font-weight:600;color:var(--ink)}
+
+    .art-foot{margin-top:60px;padding-top:24px;border-top:1px solid var(--glass-border);
+      text-align:center}
+    .art-foot a{font-size:.88rem;color:var(--blue);text-decoration:none}
+    .art-foot a:hover{text-decoration:underline}
+
+    @media(max-width:600px){
+      .art-wrap{padding:80px 16px 60px}
+      .prose pre{padding:14px 16px;border-radius:8px;font-size:.78rem}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nv">
+    <a href="../../index.html" class="n-logo">Yao Xu</a>
+    <div style="display:flex;align-items:center;gap:8px">
+      <a href="../../index.html" class="n-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Home
+      </a>
+      <button class="tb" id="tb" aria-label="Toggle theme">
+        <svg class="is" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="im" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main class="art-wrap">
+  <header class="art-hd">
+    <h1 class="art-title">About Locks</h1>
+    <div class="art-meta">Jun 15, 2023 · 5 min read</div>
+  </header>
+  <div class="prose">
+    <h1 id="test-and-set-based-lock">Test-and-set based lock</h1>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="line"><span class="cl"><span class="nl">lock:</span>
+</span></span><span class="line"><span class="cl"><span class="nl">unlock:</span>
+</span></span><span class="line"><span class="cl"><span class="nf">ld</span> <span class="no">R0</span><span class="p">,</span> <span class="no">mem</span><span class="p">[</span><span class="no">addr</span><span class="p">]</span> <span class="c1">// load word into R0
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nf">cmp</span> <span class="no">R0</span><span class="p">,</span> <span class="c1">#0 // compre R0 to 0
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nf">bnz</span> <span class="no">lock</span> <span class="c1">// if nonzero jump to top
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nf">st</span> <span class="no">mem</span><span class="p">[</span><span class="no">addr</span><span class="p">],</span> <span class="c1">#1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nf">st</span> <span class="no">mem</span><span class="p">[</span><span class="no">addr</span><span class="p">],</span> <span class="c1">#0 // store 0 to address 
+</span></span></span></code></pre></div><p>For a spinlock to work correctly and provide mutual exclusion, atomic operations are required. The atomicity of operations is necessary to prevent race conditions when multiple threads attempt to access and modify the lock variable simultaneously.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="line"><span class="cl"><span class="nl">lock:</span>
+</span></span><span class="line"><span class="cl"><span class="nf">ts</span> <span class="no">R0</span><span class="p">,</span> <span class="no">mem</span><span class="p">[</span><span class="no">addr</span><span class="p">]</span> <span class="c1">// atomically load mem[addr] into R0
+</span></span></span><span class="line"><span class="cl"><span class="c1">// if mem[addr] is 0 then mem[addr] to 1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nf">cmp</span> <span class="no">R0</span><span class="p">,</span> <span class="c1">#0 // if 0, lock obtained
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nf">bnz</span> <span class="no">lock</span>		
+</span></span><span class="line"><span class="cl"><span class="no">unlock</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl"><span class="nf">st</span> <span class="no">mem</span><span class="p">[</span><span class="no">addr</span><span class="p">],</span> <span class="c1">#0 // store 0 to address	
+</span></span></span></code></pre></div><p>This assembly code implements a simple spin lock mechanism, used to protect access to shared resources in a multi-threaded or multi-process environment. Let&rsquo;s break down each line:</p>
+<ol>
+<li>
+<p><code>lock:</code> Label: This defines a label &ldquo;lock&rdquo;, which can be used for jumping to this location in the subsequent code.</p>
+</li>
+<li>
+<p><code>ts R0, mem[addr]</code>: This line performs a Test-and-Set operation. It loads the value from the memory address <code>mem[addr]</code> into register R0 and sets the value at <code>mem[addr]</code> to 1. This is an atomic operation that ensures mutual exclusion of lock access in a concurrent environment.</p>
+</li>
+<li>
+<p><code>cmp R0, #0</code>: Compares the value in register R0 with 0.</p>
+</li>
+<li>
+<p><code>bnz lock</code>: &ldquo;bnz&rdquo; stands for &ldquo;branch if not zero.&rdquo; It jumps to the &ldquo;lock&rdquo; label if the value in register R0 is not equal to 0. This creates a spin loop. If the value in <code>mem[addr]</code> is not 0, it means the lock is already acquired by another thread/process, and the current thread/process needs to wait for the lock to be released.</p>
+</li>
+<li>
+<p><code>st mem[addr], #0</code>: This line stores the value 0 into the memory address <code>mem[addr]</code>, effectively releasing the lock. Once a thread/process reaches this point, it indicates that it has finished its critical section and is ready to release the lock, allowing other threads/processes to acquire it.</p>
+</li>
+</ol>
+<p>There is a concern when multiple threads running on all cores simultaneously execute the <code>ts</code> (Test-and-Set) instruction. In doing so, they effectively attempt to perform write memory operations concurrently. As a consequence, this leads to a significant increase in busrdx (read and invalidate) events on the bus, resulting in bus contention and a substantial reduction in system efficiency.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure  >
+  <img alt="Image alt" 
+               src="tst.png"
+               width="760"
+               height="571"
+               loading="lazy" data-zoomable /></div>
+  </div></figure>
+Source: <a href="http://15418.courses.cs.cmu.edu/spring2015content/lectures/16_synchronization/16_synchronization_slides.pdf" target="_blank" rel="noopener">http://15418.courses.cs.cmu.edu/spring2015content/lectures/16_synchronization/16_synchronization_slides.pdf</a></p>
+<h1 id="test-and-test-and-set-lock">Test-and-test-and-set lock</h1>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">Lock</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span> <span class="n">lock</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">while</span> <span class="p">(</span><span class="o">*</span><span class="n">lock</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="nf">test_and_set</span><span class="p">(</span><span class="o">*</span><span class="n">lock</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">Unlock</span><span class="p">(</span><span class="k">volatile</span> <span class="kt">int</span><span class="o">*</span> <span class="n">lock</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="o">*</span><span class="n">lock</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// while another processor has the lock...
+</span></span></span><span class="line"><span class="cl"><span class="c1">// when lock is released, try to acquire it
+</span></span></span></code></pre></div><p>The Test-and-Test-and-Set (TTAS) mechanism has some distinctive characteristics compared to the standard Test-and-Set in certain scenarios. In the uncontended case, TTAS exhibits higher latency as it involves a two-step process: first, the processor must test the lock&rsquo;s status, and then it performs the Test-and-Set operation if necessary.</p>
+<p>However, TTAS generates significantly less interconnect traffic compared to Test-and-Set. In the case of multiple waiting processors, TTAS results in only one invalidation per waiting processor per lock release, leading to O(P) invalidations. In contrast, Test-and-Set generates one invalidation per waiting processor per test, which can become more cumbersome when dealing with contention.
+This reduction in interconnect traffic makes TTAS more scalable, especially in scenarios with a high number of processors. The storage cost remains the same, requiring only a single integer variable for the lock.</p>
+<p>However, it&rsquo;s important to note that TTAS still lacks provisions for fairness, meaning there is no inherent mechanism to ensure that waiting threads or processors acquire the lock in a fair order. As a result, certain threads may experience prolonged waiting times, leading to potential issues in highly concurrent environments.</p>
+<h1 id="ticket-lock">Ticket lock</h1>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">struct</span> <span class="n">lock</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">volatile</span> <span class="kt">int</span> <span class="n">next_ticket</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">volatile</span> <span class="kt">int</span> <span class="n">now_serving</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">Lock</span><span class="p">(</span><span class="n">lock</span><span class="o">*</span> <span class="n">l</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">my_ticket</span> <span class="o">=</span> <span class="nf">atomic_increment</span><span class="p">(</span><span class="o">&amp;</span><span class="n">l</span><span class="o">-&gt;</span><span class="n">next_ticket</span><span class="p">);</span>   <span class="c1">// take a &#34;ticket&#34;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">while</span> <span class="p">(</span><span class="n">my_ticket</span> <span class="o">!=</span> <span class="n">l</span><span class="o">-&gt;</span><span class="n">now_serving</span><span class="p">);</span>                <span class="c1">// wait for number to be called
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">Unlock</span><span class="p">(</span><span class="n">lock</span><span class="o">*</span> <span class="n">l</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">l</span><span class="o">-&gt;</span><span class="n">now_serving</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><ol>
+<li>
+<p><code>struct lock</code>: This defines a simple data structure named <code>lock</code> containing two volatile integer variables: <code>next_ticket</code> and <code>now_serving</code>. The <code>next_ticket</code> variable is used to issue tickets to waiting threads, while <code>now_serving</code> keeps track of the current ticket being served.</p>
+</li>
+<li>
+<p><code>void Lock(lock* l)</code>: This function implements the locking mechanism using the ticket lock approach. When a thread enters this function, it first takes a ticket by incrementing the <code>next_ticket</code> variable atomically. The thread then waits in a loop until its ticket number matches the value of <code>now_serving</code>, effectively waiting for its turn to access the critical section. This ensures that threads acquire the lock in the order they requested it, providing fairness.</p>
+</li>
+<li>
+<p><code>void Unlock(lock* l)</code>: This function is responsible for unlocking the lock. It increments the <code>now_serving</code> variable, effectively signaling that the critical section has been released and allowing the next waiting thread to acquire the lock.</p>
+</li>
+</ol>
+<p>The code implements a ticket lock that ensures fairness in granting access to the critical section. Threads obtain tickets in order, and only the thread with the corresponding ticket number can proceed to execute the critical section. This approach avoids thread starvation and guarantees that threads waiting for the lock will eventually be granted access in the order they requested it.</p>
+  </div>
+  <div class="art-foot">
+    <a href="../../index.html">← Back to Home</a>
+  </div>
+</main>
+
+<script>
+const r=document.documentElement,s=localStorage.getItem('theme');
+if(s)r.setAttribute('data-theme',s);
+document.getElementById('tb').onclick=()=>{
+  const c=r.getAttribute('data-theme'),d=matchMedia('(prefers-color-scheme:dark)').matches,
+  n=!c?(d?'light':'dark'):c==='dark'?'light':'dark';
+  r.setAttribute('data-theme',n);localStorage.setItem('theme',n)};
+</script>
+</body>
+</html>

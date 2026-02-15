@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RISC-V OS Kernel Rewrite Based on MIT Xv6 | Yao Xu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#f2f2f7;--glass:rgba(255,255,255,.42);--glass-h:rgba(255,255,255,.62);
+      --glass-border:rgba(255,255,255,.6);--glass-border-b:rgba(0,0,0,.04);
+      --glass-sh:0 1px 3px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.05);
+      --glass-blur:20px;--glass-spec:rgba(255,255,255,.85);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.55) 0%,transparent 42%);
+      --nav-bg:rgba(242,242,247,.6);
+      --ink:#1d1d1f;--ink-2:#48484a;--ink-3:#8e8e93;--ink-4:#aeaeb2;
+      --blue:#0071e3;--code-bg:rgba(0,0,0,.03);
+      --sans:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+      --head:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+      --mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+      --bg:#000;--glass:rgba(255,255,255,.05);--glass-h:rgba(255,255,255,.09);
+      --glass-border:rgba(255,255,255,.08);--glass-border-b:rgba(255,255,255,.02);
+      --glass-sh:0 1px 3px rgba(0,0,0,.2),0 4px 16px rgba(0,0,0,.25),inset 0 .5px 0 rgba(255,255,255,.04);
+      --glass-blur:24px;--glass-spec:rgba(255,255,255,.12);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 42%);
+      --nav-bg:rgba(0,0,0,.5);
+      --ink:#f5f5f7;--ink-2:#a1a1a6;--ink-3:#6e6e73;--ink-4:#48484a;
+      --blue:#2997ff;--code-bg:rgba(255,255,255,.05);
+    }}
+    :root[data-theme="dark"]{
+      --bg:#000;--glass:rgba(255,255,255,.05);--glass-h:rgba(255,255,255,.09);
+      --glass-border:rgba(255,255,255,.08);--glass-border-b:rgba(255,255,255,.02);
+      --glass-sh:0 1px 3px rgba(0,0,0,.2),0 4px 16px rgba(0,0,0,.25),inset 0 .5px 0 rgba(255,255,255,.04);
+      --glass-blur:24px;--glass-spec:rgba(255,255,255,.12);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 42%);
+      --nav-bg:rgba(0,0,0,.5);
+      --ink:#f5f5f7;--ink-2:#a1a1a6;--ink-3:#6e6e73;--ink-4:#48484a;
+      --blue:#2997ff;--code-bg:rgba(255,255,255,.05);
+    }
+
+    html{scroll-behavior:smooth}
+    body{font-family:var(--sans);background:var(--bg);color:var(--ink);
+      -webkit-font-smoothing:antialiased;line-height:1.7;overflow-x:hidden;
+      transition:background .5s,color .3s}
+    ::selection{background:var(--blue);color:#fff}
+
+    body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+      background:
+        radial-gradient(ellipse 75% 50% at 5% 15%,rgba(0,122,255,.05) 0%,transparent 60%),
+        radial-gradient(ellipse 50% 55% at 92% 8%,rgba(175,82,222,.04) 0%,transparent 55%),
+        radial-gradient(ellipse 55% 45% at 72% 82%,rgba(52,199,89,.03) 0%,transparent 50%);
+    }
+
+    /* Nav */
+    nav{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:200;
+      width:min(calc(100% - 32px),600px);
+      backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);
+      background:var(--nav-bg);border:1px solid var(--glass-border);
+      border-radius:980px;box-shadow:var(--glass-sh);transition:box-shadow .3s}
+    nav::before{content:'';position:absolute;top:0;left:18%;right:18%;height:1px;
+      background:linear-gradient(90deg,transparent,var(--glass-spec),transparent);pointer-events:none}
+    .nv{padding:0 24px;height:46px;display:flex;align-items:center;justify-content:space-between}
+    .n-logo{font-family:var(--head);font-size:.95rem;font-weight:600;letter-spacing:-.02em;
+      color:var(--ink);text-decoration:none}
+    .n-back{font-size:.82rem;color:var(--ink-3);text-decoration:none;
+      display:flex;align-items:center;gap:6px;transition:color .2s}
+    .n-back:hover{color:var(--ink)}
+    .tb{display:flex;align-items:center;justify-content:center;width:32px;height:32px;
+      border-radius:50%;border:none;background:none;color:var(--ink-3);cursor:pointer;transition:all .2s}
+    .tb:hover{background:var(--glass-h);color:var(--ink)}
+    .is{display:none}.im{display:block}
+    @media(prefers-color-scheme:dark){
+      :root:not([data-theme="light"]) .is{display:block}
+      :root:not([data-theme="light"]) .im{display:none}
+    }
+    :root[data-theme="dark"] .is{display:block}
+    :root[data-theme="dark"] .im{display:none}
+    :root[data-theme="light"] .is{display:none}
+    :root[data-theme="light"] .im{display:block}
+
+    /* Article */
+    .art-wrap{max-width:740px;margin:0 auto;padding:100px 24px 80px}
+    .art-hd{margin-bottom:40px}
+    .art-title{font-family:var(--head);font-size:clamp(1.6rem,4vw,2.2rem);
+      font-weight:700;letter-spacing:-.03em;line-height:1.2;margin-bottom:10px}
+    .art-meta{font-size:.82rem;color:var(--ink-3)}
+
+    /* Prose */
+    .prose h1{font-family:var(--head);font-size:1.5rem;font-weight:700;letter-spacing:-.02em;
+      margin:48px 0 16px;line-height:1.3}
+    .prose h2{font-family:var(--head);font-size:1.25rem;font-weight:600;letter-spacing:-.02em;
+      margin:40px 0 14px;line-height:1.3}
+    .prose h3{font-family:var(--head);font-size:1.05rem;font-weight:600;
+      margin:32px 0 12px;line-height:1.4}
+    .prose p{margin-bottom:18px;color:var(--ink-2)}
+    .prose a{color:var(--blue);text-decoration:none}
+    .prose a:hover{text-decoration:underline}
+    .prose img{max-width:100%;height:auto;border-radius:12px;margin:24px 0;
+      box-shadow:var(--glass-sh)}
+    .prose figure{margin:24px 0}
+    .prose figure img{margin:0}
+    .prose ul,.prose ol{margin:0 0 18px 24px;color:var(--ink-2)}
+    .prose li{margin-bottom:6px}
+    .prose blockquote{border-left:3px solid var(--blue);padding:12px 20px;
+      margin:18px 0;background:var(--code-bg);border-radius:0 8px 8px 0;
+      color:var(--ink-3)}
+    .prose strong{font-weight:600;color:var(--ink)}
+    .prose code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);
+      padding:2px 6px;border-radius:4px;color:var(--ink-2)}
+    .prose pre{background:var(--code-bg);border:1px solid var(--glass-border);
+      border-radius:12px;padding:20px 24px;overflow-x:auto;margin:18px 0;
+      font-size:.84rem;line-height:1.6}
+    .prose pre code{background:none;padding:0;font-size:inherit}
+    .prose .highlight pre{background:var(--code-bg);border:1px solid var(--glass-border);
+      border-radius:12px;padding:20px 24px;overflow-x:auto;margin:18px 0}
+    .prose .highlight code{background:none;padding:0}
+    .prose table{width:100%;border-collapse:collapse;margin:18px 0;font-size:.88rem}
+    .prose th,.prose td{padding:10px 14px;border-bottom:1px solid var(--glass-border);
+      text-align:left}
+    .prose th{font-weight:600;color:var(--ink)}
+
+    .art-foot{margin-top:60px;padding-top:24px;border-top:1px solid var(--glass-border);
+      text-align:center}
+    .art-foot a{font-size:.88rem;color:var(--blue);text-decoration:none}
+    .art-foot a:hover{text-decoration:underline}
+
+    @media(max-width:600px){
+      .art-wrap{padding:80px 16px 60px}
+      .prose pre{padding:14px 16px;border-radius:8px;font-size:.78rem}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nv">
+    <a href="../../index.html" class="n-logo">Yao Xu</a>
+    <div style="display:flex;align-items:center;gap:8px">
+      <a href="../../index.html" class="n-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Home
+      </a>
+      <button class="tb" id="tb" aria-label="Toggle theme">
+        <svg class="is" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="im" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main class="art-wrap">
+  <header class="art-hd">
+    <h1 class="art-title">RISC-V OS Kernel Rewrite Based on MIT Xv6</h1>
+    <div class="art-meta">May 2, 2023 · 20 min read</div>
+  </header>
+  <div class="prose">
+    <h1 id="repo-link">Repo Link</h1>
+<p><a href="https://github.com/YaoGH-code/OS" target="_blank" rel="noopener">https://github.com/YaoGH-code/OS</a></p>
+<h1 id="entrys">entry.S</h1>
+<p>As per the specifications mentioned in the linker script, the RAM in the system begins at the physical address 0x80000000. It has a total size of 128 megabytes (128M). The specific memory layout is determined by the way QEMU simulates the memory in the system.</p>
+<p>Once the boot loader successfully loads the kernel into the RAM, the execution of the system starts from the entry.S file. This file serves as the entry point of the kernel code.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="line"><span class="cl"><span class="na">.section</span> <span class="no">.text</span>
+</span></span><span class="line"><span class="cl"><span class="na">.global</span> <span class="no">_entry</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nl">_entry:</span>                 <span class="cm">/* basically adding a offset ((mhartid+1)*4096) to 
+</span></span></span><span class="line"><span class="cl"><span class="cm">                        find the starting address of each hart */</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">la</span> <span class="no">sp</span><span class="p">,</span> <span class="no">stack0</span>       <span class="c1"># load the address of symbol stack0 to sp register
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nf">li</span> <span class="no">a0</span><span class="p">,</span> <span class="mi">4096</span>         <span class="c1"># load the immediate to a0 register
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="cm">/*  csrr: Control and Status Register Read
+</span></span></span><span class="line"><span class="cl"><span class="cm">    The mhartid CSR is an XLEN-bit read-only register containing the integer 
+</span></span></span><span class="line"><span class="cl"><span class="cm">    ID of the hardware thread running the code. This register must be 
+</span></span></span><span class="line"><span class="cl"><span class="cm">    readable in any implementation. Hart IDs might not necessarily be 
+</span></span></span><span class="line"><span class="cl"><span class="cm">    numbered contiguously in a multiprocessor system, but at least one hart 
+</span></span></span><span class="line"><span class="cl"><span class="cm">    must have a hart ID of zero. 
+</span></span></span><span class="line"><span class="cl"><span class="cm">    mhartid -&gt; Machine Hart ID -&gt; to identify 
+</span></span></span><span class="line"><span class="cl"><span class="cm">    currently running thread Hart -&gt; Hardware Thread */</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">csrr</span> <span class="no">a1</span><span class="p">,</span> <span class="no">mhartid</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">addi</span> <span class="no">a1</span><span class="p">,</span> <span class="no">a1</span><span class="p">,</span> <span class="mi">1</span>      <span class="c1"># a1 += 1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nf">mul</span> <span class="no">a0</span><span class="p">,</span> <span class="no">a0</span><span class="p">,</span> <span class="no">a1</span>      <span class="c1"># a0 *= a1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nf">add</span> <span class="no">sp</span><span class="p">,</span> <span class="no">sp</span><span class="p">,</span> <span class="no">a0</span>      <span class="c1"># sp += a0
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nf">call</span> <span class="no">start</span>          <span class="c1"># go to start in start.c
+</span></span></span></code></pre></div><p>The purpose of the code snippet is to load the address of an initial stack for each core into the sp (stack pointer) register. This allows for a smooth transition to the C code in the start.c file. In start.c, the stack is defined as an array, and each core can utilize a portion of this array as its stack.</p>
+<h1 id="about-spin-lock">About Spin Lock</h1>
+<p>A spinlock is a commonly used synchronization mechanism in operating systems and concurrent programming, with the primary objective to prevent multiple threads or processes from accessing or modifying shared resources simultaneously, thereby causing data inconsistency or race conditions. The basic working principle of a spinlock is that if the lock is already occupied, a thread attempting to acquire the lock will &ldquo;spin&rdquo; in a loop until the lock becomes available.</p>
+<p>A distinguishing characteristic of spinlocks, as compared to other types of locks (such as mutexes), is that they do not put the thread into a sleeping state. When a thread cannot acquire a spinlock, it continues running and repeatedly checks the lock&rsquo;s status instead of being suspended and yielding the CPU to other threads. This makes spinlocks particularly suited for scenarios where the lock holding time is short but needs to be acquired and released quickly. However, spinlocks are not a panacea. Spinning while waiting for the lock to be released consumes CPU resources, and if the lock is held for a long time, this could lead to resource wastage. Thus, understanding when and how to use spinlocks is crucial for efficient concurrency control.</p>
+<p>In the first code snippet:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">lock</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="o">*</span><span class="n">lock</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">else</span> 
+</span></span><span class="line"><span class="cl">    <span class="n">try</span> <span class="n">again</span><span class="p">;</span>
+</span></span></code></pre></div><p>This simplistic lock acquisition approach does not consider the complexities introduced by multithreading, either within a single core or across multiple cores. In such environments, multiple threads could concurrently read the lock as being available (<code>*lock == 0</code>) and proceed to acquire it, leading to a race condition where multiple threads think they have exclusive access to the lock.</p>
+<p>To address these concurrency issues, we need to ensure that the check and set operations are atomic, meaning they appear to occur instantaneously and cannot be interrupted. In RISC-V, one way to achieve atomicity is by using the <code>AMOSWAP</code> instruction for an atomic swap operation.</p>
+<p>Consider this revised approach using Compare and Swap (CAS):</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="cm">/* CAS */</span>
+</span></span><span class="line"><span class="cl"><span class="k">while</span><span class="p">(</span><span class="nf">__sync_lock_test_and_set</span><span class="p">(</span><span class="o">&amp;</span><span class="n">lock</span><span class="o">-&gt;</span><span class="n">locked</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">);</span>
+</span></span></code></pre></div><p>In this operation, we are attempting to atomically set <code>lock-&gt;locked</code> to 1 and retrieve its old value in one go. If the previous value is not zero, which indicates the lock is currently held by another thread, we continue spinning and attempt the operation again.</p>
+<p>An essential addition here is the <code>memory fence</code>, which is employed to prevent the C compiler or the hardware from reordering memory access instructions in a way that could lead to inconsistencies. This reordering is often done for optimization purposes but can lead to problems in a multithreaded context, especially with locks. By placing a memory fence after acquiring the lock, we ensure that no memory operations that occur after the lock acquisition are mistakenly executed beforehand. Consequently, this preserves the integrity of the data protected by the lock and prevents potential race conditions.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">intr_push</span><span class="p">(){</span>
+</span></span><span class="line"><span class="cl">    <span class="cm">/* Read current sstatus */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">uint64_t</span> <span class="n">cur_sstatus</span> <span class="o">=</span> <span class="nf">read_sstatus</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="cm">/* If SIE, old_state = 1; if not SIE, old_state = 0 */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">old_state</span> <span class="o">=</span> <span class="p">((</span><span class="n">cur_sstatus</span> <span class="o">&amp;</span> <span class="n">SSTATUS_SIE</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="cm">/* Turn off interrupt */</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">write_sstatus</span><span class="p">(</span><span class="nf">read_sstatus</span><span class="p">()</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">SSTATUS_SIE</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="cm">/* If in first level of interrupt, store current intrrupt state */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nf">get_mycore</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">disable_cnt</span><span class="p">)</span> <span class="nf">get_mycore</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">prev_int_state</span> <span class="o">=</span> <span class="n">old_state</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="cm">/* Disable count ++ */</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">get_mycore</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">disable_cnt</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">acquire_spinlock</span><span class="p">(</span><span class="k">struct</span> <span class="n">spinlock</span><span class="o">*</span> <span class="n">lock</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">intr_push</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="nf">core_holding</span><span class="p">(</span><span class="n">lock</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">kerror</span><span class="p">(</span><span class="n">__FILE_NAME__</span><span class="p">,</span><span class="n">__LINE__</span><span class="p">,</span><span class="s">&#34;there is already a core holding the lock.</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>          
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/* CAS */</span>
+</span></span><span class="line"><span class="cl">    <span class="k">while</span><span class="p">(</span><span class="nf">__sync_lock_test_and_set</span><span class="p">(</span><span class="o">&amp;</span><span class="n">lock</span><span class="o">-&gt;</span><span class="n">locked</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">__sync_synchronize</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="cm">/* Update cpu */</span>
+</span></span><span class="line"><span class="cl">    <span class="n">lock</span><span class="o">-&gt;</span><span class="n">core</span> <span class="o">=</span> <span class="nf">get_mycore</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>Consider another scenario where an interrupt handler and the kernel share a common buffer. Just as the kernel acquires the spinlock for this buffer, an interrupt occurs. The interrupt handler will also try to acquire this spinlock, leading to a <code>deadlock</code> situation.</p>
+<p>To resolve this issue, xv6 opts to disable interrupts prior to acquiring the spinlock and re-enables them only after the lock is released. This strategy not only avoids the aforementioned deadlock scenario but also reduces the amount of time the spinlock is held, thus enhancing overall system efficiency.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="cm">/* Per-Core state */</span>
+</span></span><span class="line"><span class="cl"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">core</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="k">struct</span> <span class="n">proc</span> <span class="o">*</span><span class="n">proc</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="k">struct</span> <span class="n">context</span> <span class="n">context</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl">  <span class="kt">int</span> <span class="n">disable_cnt</span><span class="p">;</span>                
+</span></span><span class="line"><span class="cl">  <span class="kt">int</span> <span class="n">prev_int_state</span><span class="p">;</span>        
+</span></span><span class="line"><span class="cl"><span class="p">}</span><span class="kt">core_t</span><span class="p">;</span>
+</span></span></code></pre></div><p>In some situations, the kernel might attempt to acquire multiple spinlocks in a nested manner. In these cases, we don&rsquo;t want the interrupts to be enabled immediately after the first spinlock is released. Instead, the interrupts should only be enabled once the outermost spinlock is released.</p>
+<p>To handle this, we keep track of the nested levels at which each core executes <code>intr_push()</code> by incrementing a <code>disable_cnt</code> with each call. Conversely, every time <code>intr_pop()</code> is called, we decrement <code>disable_cnt</code>. When <code>disable_cnt</code> reaches zero, it indicates that all nested locks have been released, and we can restore the interrupt status that existed on the current core prior to the first <code>intr_push()</code> invocation.</p>
+<p>Managing this carefully ensures we maintain the correct state of interrupts relative to the spinlock handling, preserving the integrity of the operations protected by these locks, and preventing potential deadlock scenarios.</p>
+<h1 id="about-plic---platform-level-interrupt-controller">About PLIC - Platform Level Interrupt Controller</h1>
+<p>Interrupts are events that occur in computer systems when certain devices or processes require immediate attention from the CPU. These devices can include input devices like keyboards or disks. When an interrupt is generated, it signals the CPU to temporarily pause its current execution and handle the interrupt request.
+When an interrupt occurs, a specific bit called the interrupt pending bit associated with the corresponding device is set. All cores that have that particular device enabled are notified, causing a trap or exception to be triggered. This trap transfers control to the interrupt handler, which is responsible for processing the interrupt.
+To determine which device caused the interrupt, the trap handler reads a memory-mapped register in the Platform-Level Interrupt Controller (PLIC). This register contains information about the interrupting device, and the handler retrieves the ID associated with that device. Additionally, the PLIC clears the interrupt pending bit for that device.
+Each device is assigned a unique device number, and cores can be interrupted in different modes, such as machine, supervisor, or user mode. Moreover, each device is assigned a priority, while each core is allocated a threshold value. Only devices with a priority higher than the core&rsquo;s threshold can generate interrupts and interrupt the core&rsquo;s ongoing operations. This prioritization helps ensure that critical or time-sensitive events take precedence over less important ones.</p>
+<p>In the plic_init function, the device priority for the UART and disk is set to 1. This indicates that these devices have a higher priority compared to others in the system. Setting priorities helps determine the order in which interrupts are handled.
+In the plic_init_hart function, the interrupt matrix is updated to enable interrupts from the disk and UART devices for a specific core. This means that this particular core is now capable of receiving and processing interrupts from these devices.
+Furthermore, the priority threshold for the core is set to 0. This threshold determines which interrupts can interrupt the core&rsquo;s ongoing operations. By setting it to 0, no interrupts are blocked based on their priority. This ensures that all interrupts from enabled devices will be serviced by the core.
+The interrupt_claim and interrupt_complete functions are used by a core to claim an interrupt and mark its completion. When an interrupt occurs, the core can use the interrupt_claim function to indicate that it will handle the interrupt. Once the interrupt service routine is completed, the interrupt_complete function is called to notify the PLIC that the interrupt has been serviced and can be cleared.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm">* Each PLIC interrupt source can be assigned a priority 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* by writing to its 32-bit memory-mapped priority 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* register. The FU540-C000 supports 7 levels of 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* priority. A priority value of 0 is reserved to mean 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* &#34;never interrupt&#34; and effectively disables the 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* interrupt. Priority 1 is the lowest active priority, 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* and priority 7 is the highest. Ties between global 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* interrupts of the same priority are broken by the 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* Interrupt ID; interrupts with the lowest ID have the 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* highest effective priority.
+</span></span></span><span class="line"><span class="cl"><span class="cm">* Here, we set the device priority of UART and disk to 1.
+</span></span></span><span class="line"><span class="cl"><span class="cm">*/</span>
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">plic_init</span><span class="p">(){</span>
+</span></span><span class="line"><span class="cl">   <span class="nf">printk</span><span class="p">(</span><span class="s">&#34;+------------------------------------------+</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">   <span class="nf">printk</span><span class="p">(</span><span class="s">&#34;|               plic_init                  |</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">   <span class="nf">printk</span><span class="p">(</span><span class="s">&#34;+------------------------------------------+</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">   <span class="nf">mm_writew</span><span class="p">(</span><span class="n">PLIC_PRIORITY_BASE</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">UART0_IRQ</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">   <span class="nf">mm_writew</span><span class="p">(</span><span class="n">PLIC_PRIORITY_BASE</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">VIRTIO0_IRQ</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">   <span class="nf">plic_init_hart</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm">* Each global interrupt can be enabled by setting the 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* corresponding bit in the enables registers. The 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* enables registers are accessed as a contiguous 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* array of 2 × 32-bit words, packed the same way as 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* the pending bits. Bit 0 of enable word 0 represents 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* the non-existent interrupt ID 0 and is hardwired to 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* 0.
+</span></span></span><span class="line"><span class="cl"><span class="cm">*
+</span></span></span><span class="line"><span class="cl"><span class="cm">* The FU540-C000 supports setting of an interrupt 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* priority threshold via the threshold register. The 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* threshold is a WARL field, where the FU540-C000 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* supports a maximum threshold of 7. The FU540-C000 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* masks all PLIC interrupts of a priority less than 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* or equal to threshold. For example, a threshold 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* value of zero permits all interrupts with non-zero 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* priority, whereas a value of 7 masks all interrupts.
+</span></span></span><span class="line"><span class="cl"><span class="cm">* 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* Here, we update the interrupt matrix, enable interrupt 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* from disk and UART for a particular core and also set 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* priority threshold to 0 so we do not block any 
+</span></span></span><span class="line"><span class="cl"><span class="cm">* interrupt.
+</span></span></span><span class="line"><span class="cl"><span class="cm">*
+</span></span></span><span class="line"><span class="cl"><span class="cm">* Also, no need to care about machine mode.
+</span></span></span><span class="line"><span class="cl"><span class="cm">*/</span>
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">plic_init_hart</span><span class="p">(){</span>
+</span></span><span class="line"><span class="cl">   <span class="kt">uint64_t</span> <span class="n">hartid</span> <span class="o">=</span> <span class="nf">read_tp</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">   <span class="nf">mm_writew</span><span class="p">(</span><span class="n">PLIC_SEN_BASE</span> <span class="o">+</span> <span class="n">hartid</span> <span class="o">*</span> <span class="mh">0x100</span><span class="p">,</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">VIRTIO0_IRQ</span> <span class="o">|</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">UART0_IRQ</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">   <span class="nf">mm_writew</span><span class="p">(</span><span class="n">PLIC_STHRES_BASE</span> <span class="o">+</span> <span class="n">hartid</span> <span class="o">*</span> <span class="mh">0x2000</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">trap_claim</span><span class="p">(){</span>
+</span></span><span class="line"><span class="cl">   <span class="kt">uint64_t</span> <span class="n">hartid</span> <span class="o">=</span> <span class="nf">read_tp</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">   <span class="k">return</span> <span class="nf">mm_readw</span><span class="p">(</span><span class="n">PLIC_SCLAIM</span> <span class="o">+</span> <span class="n">hartid</span> <span class="o">*</span> <span class="mh">0x2000</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">trap_complete</span><span class="p">(</span><span class="kt">int</span> <span class="n">irq</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">   <span class="kt">uint64_t</span> <span class="n">hartid</span> <span class="o">=</span> <span class="nf">read_tp</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">   <span class="nf">mm_writew</span><span class="p">(</span><span class="n">PLIC_SCLAIM</span> <span class="o">+</span> <span class="n">hartid</span> <span class="o">*</span> <span class="mh">0x2000</span><span class="p">,</span> <span class="n">irq</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h1 id="about-uart">About UART</h1>
+<p>In the QEMU environment, the UART hardware that the driver communicates with is emulated as a 16550 chip. In a real computer, a 16550 chip would typically manage an RS232 serial link, which connects to a terminal or another computer. However, when running QEMU, the emulated UART is connected to the keyboard and display of the virtual machine.</p>
+<p>To interface with the UART hardware, software interacts with a set of memory-mapped control registers. These registers are mapped to specific physical addresses that are connected to the UART device within the RISC-V hardware. In the context of the RISC-V system, the memory-mapped addresses for the UART hardware start at the address 0x10000000. By accessing and manipulating these specific addresses, software can read from and write to the UART control registers, enabling communication with external devices and facilitating tasks such as sending and receiving data through the emulated UART interface.</p>
+<p>The initialization process for UART involves three key steps: configuring the baud rate, enabling the internal FIFO queue, and activating the interrupts for receive register full and transmit register empty.</p>
+<p>To immediately send a character, we can employ a busy wait approach where we continuously check the transmit register empty bit in the line status register until it becomes unset. Once the bit is unset, we can place the character in the transmit holding register.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="cm">/* Transmit a char through UART when transmitter hold register is empty by
+</span></span></span><span class="line"><span class="cl"><span class="cm">   writing the char to THR register */</span>
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">uart_putc_sync</span><span class="p">(</span><span class="kt">char</span> <span class="n">c</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">intr_push</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="nf">mm_readb</span><span class="p">(</span><span class="n">LSR</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">LSR_THR_IDLE</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">mm_writeb</span><span class="p">(</span><span class="n">THR</span><span class="p">,</span> <span class="n">c</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">intr_pop</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>One common approach to implementing a UART driver is by utilizing a buffer and interrupt mechanism. This involves using interrupts to handle events such as receiving characters from an external source or when the transmit register is empty. When a UART interrupt occurs, the uart_isr function is executed(called from kernel or user level interrupt handler).
+Within the uart_isr function, the received character in the receive register is checked. If there is a character present, it will be processed and echoed back. Additionally, if the buffer is not empty, as many characters in the buffer as possible will be sent via the UART.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">uart_isr</span><span class="p">(){</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">while</span><span class="p">((</span><span class="n">c</span> <span class="o">=</span> <span class="nf">uart_get_char</span><span class="p">())</span> <span class="o">!=</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">console_isr</span><span class="p">(</span><span class="n">c</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">uart_flush</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">uart_flush</span><span class="p">(){</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">acquire_spinlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">uart_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">while</span> <span class="p">(</span><span class="n">head</span> <span class="o">!=</span> <span class="n">tail</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="nf">mm_readb</span><span class="p">(</span><span class="n">LSR</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">LSR_THR_IDLE</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">buf</span><span class="p">[</span><span class="n">head</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="n">head</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">mm_writeb</span><span class="p">(</span><span class="n">THR</span><span class="p">,</span> <span class="n">c</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">release_spinlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">uart_lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>Right after initialization, when the Interrupt Status Register (ISR) is set to 1, which indicates the presence of a pending interrupt. Consequently, enabling the global interrupt will immediately generate an interrupt. In the case where the receive register is full, the ISR will be set to generate an interrupt, ensuring that the system responds to the incoming data. Similarly, when the transmit register transitions from a full state to an empty state, the ISR will also be set to trigger an interrupt. This interrupt aims to facilitate the retrieval of additional characters from the ring buffer for transmission.</p>
+<h1 id="about-trap">About Trap</h1>
+<p>According to the definition and interpretation of traps in xv6, trap includes system call, exception and interrupt. Following is how a RISC-V CPU and xv6 kernel handle a trap.</p>
+<p>When a trap occurs the hardware will do the following things:</p>
+<ul>
+<li>If the SIE in sstatus is cleared which means the interrupt is disabled, the trap remains pending until interrupts are re-enabled.</li>
+<li>Disable interrupts by clearing SIE</li>
+<li>Copy the pc to sepc to save current pc</li>
+<li>Save the current mode (user or supervisor) in the SPP bit in sstatus</li>
+<li>Set scause to reflect the trap’s cause</li>
+<li>Set the mode to supervisor</li>
+<li>Copy stvec to the pc</li>
+</ul>
+<p><span style="color:orange">After completing the necessary initialization steps, the core begins executing the user trap handler, which consists of assembly code located in the trap page. This trap page is mapped to the virtual address space of all processes. Since hardware aims to maintain simplicity, the address space is not automatically switched by the hardware. Therefore, while executing this assembly code, we are still operating within the address space of the process that triggered the trap and entered the kernel.
+<span ></p>
+<p><span style="color:orange">By utilizing the sscratch register, we can free up a general-purpose register for accessing the trap frame. The trap frame contains important information about the kernel space, such as the kernel page table root address, stack pointer, and core ID. Initially, it is essential to save all registers from the user space into the trap frame, which is defined as a structure in the proc.h file.
+Next, we load the stack pointer, hardware thread ID, and install the kernel page table. It is worth noting that all memory accesses are performed before installing the kernel page table, which is achieved by setting a memory fence. This ensures that necessary address operations are completed using the current address space.
+Finally, we jump to the user trap C code, which allows further processing and handling of the trap within the kernel.
+<span ></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="line"><span class="cl"><span class="nf">globl</span> <span class="no">usertrap</span>
+</span></span><span class="line"><span class="cl"><span class="nl">usertrap:</span>    
+</span></span><span class="line"><span class="cl">        <span class="nf">csrrw</span> <span class="no">a0</span><span class="p">,</span> <span class="no">sscratch</span><span class="p">,</span> <span class="no">a0</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/** 
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * Each process has a separate trap frame but it&#39;s mapped 
+</span></span></span><span class="line"><span class="cl"><span class="cm">         * to the same virtual address
+</span></span></span><span class="line"><span class="cl"><span class="cm">         */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">li</span> <span class="no">a0</span><span class="p">,</span> <span class="mi">0x3fffffe000</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm">          +----------------+
+</span></span></span><span class="line"><span class="cl"><span class="cm">          |   TRAP FRAME   |
+</span></span></span><span class="line"><span class="cl"><span class="cm">          +----------------+
+</span></span></span><span class="line"><span class="cl"><span class="cm">          |   Kernel satp  | OFF: 0
+</span></span></span><span class="line"><span class="cl"><span class="cm">          +----------------+
+</span></span></span><span class="line"><span class="cl"><span class="cm">          |   Kernel sp    | OFF: 8
+</span></span></span><span class="line"><span class="cl"><span class="cm">          +----------------+
+</span></span></span><span class="line"><span class="cl"><span class="cm">          |   User trap    | OFF: 16
+</span></span></span><span class="line"><span class="cl"><span class="cm">          +----------------+
+</span></span></span><span class="line"><span class="cl"><span class="cm">          |      epc       | OFF: 24
+</span></span></span><span class="line"><span class="cl"><span class="cm">          +----------------+
+</span></span></span><span class="line"><span class="cl"><span class="cm">          | Kernel hartid  | OFF: 32
+</span></span></span><span class="line"><span class="cl"><span class="cm">          +----------------+
+</span></span></span><span class="line"><span class="cl"><span class="cm">          |  GP registers  | OFF: 40 - 280
+</span></span></span><span class="line"><span class="cl"><span class="cm">          +----------------+
+</span></span></span><span class="line"><span class="cl"><span class="cm">          */</span>
+</span></span><span class="line"><span class="cl">        
+</span></span><span class="line"><span class="cl">        <span class="cm">/* Save user registers in the trap frame
+</span></span></span><span class="line"><span class="cl"><span class="cm">         which is defined in proc.h */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">sd</span> <span class="no">ra</span><span class="p">,</span>  <span class="mi">40</span><span class="p">(</span><span class="no">a0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">sd</span> <span class="no">sp</span><span class="p">,</span>  <span class="mi">48</span><span class="p">(</span><span class="no">a0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">sd</span> <span class="no">gp</span><span class="p">,</span>  <span class="mi">56</span><span class="p">(</span><span class="no">a0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">sd</span> <span class="no">tp</span><span class="p">,</span>  <span class="mi">64</span><span class="p">(</span><span class="no">a0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="na">......</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">sd</span> <span class="no">t4</span><span class="p">,</span>  <span class="mi">264</span><span class="p">(</span><span class="no">a0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">sd</span> <span class="no">t5</span><span class="p">,</span>  <span class="mi">272</span><span class="p">(</span><span class="no">a0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">sd</span> <span class="no">t6</span><span class="p">,</span>  <span class="mi">280</span><span class="p">(</span><span class="no">a0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="cm">/* Save a0 from the user space to t0 since t0
+</span></span></span><span class="line"><span class="cl"><span class="cm">           has been save to the trap frame */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">csrr</span> <span class="no">t0</span><span class="p">,</span> <span class="no">sscratch</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/* Save t0 (a0) to the trap frame to finish saving 
+</span></span></span><span class="line"><span class="cl"><span class="cm">           all of the user registers */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">sd</span> <span class="no">t0</span><span class="p">,</span> <span class="mi">112</span><span class="p">(</span><span class="no">a0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/* Initialize kernel stack pointer, remember each process 
+</span></span></span><span class="line"><span class="cl"><span class="cm">        has a kernel stack, the proc-&gt;kstack contains the 
+</span></span></span><span class="line"><span class="cl"><span class="cm">        virtual address of the kernel stack */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">ld</span> <span class="no">sp</span><span class="p">,</span> <span class="mi">8</span><span class="p">(</span><span class="no">a0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/* Load the address of usertrap(), this should be set before 
+</span></span></span><span class="line"><span class="cl"><span class="cm">        returning to user mode */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">ld</span> <span class="no">t0</span><span class="p">,</span> <span class="mi">16</span><span class="p">(</span><span class="no">a0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nf">ld</span> <span class="no">tp</span><span class="p">,</span> <span class="mi">32</span><span class="p">(</span><span class="no">a0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/* Wait for any previous memory operations to complete 
+</span></span></span><span class="line"><span class="cl"><span class="cm">        which uses the user page table */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">sfence.vma</span> <span class="no">zero</span><span class="p">,</span> <span class="no">zero</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/* Install the kernel page table */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">ld</span> <span class="no">t1</span><span class="p">,</span> <span class="mi">0</span><span class="p">(</span><span class="no">a0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">csrw</span> <span class="no">satp</span><span class="p">,</span> <span class="no">t1</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/* Flush now-stale user entries from the TLB */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">sfence.vma</span> <span class="no">zero</span><span class="p">,</span> <span class="no">zero</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="cm">/* Jump to usertrap(), which does not return */</span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* NOTICE all memory access to the trap frame is done before switching 
+</span></span></span><span class="line"><span class="cl"><span class="cm">           the page table */</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">jr</span> <span class="no">t0</span>
+</span></span></code></pre></div><p>Trap handing that happens in the kernel is simpiler. By setting the STEVC register to the assembly symbol &ldquo;ktrap&rdquo;, the trap handling process in the kernel, executed in supervisor mode. The assembly code portion of the kernel trap handler primarily focuses on saving all general-purpose registers before passing control to the C kernel trap handler. After the C kernel trap handler completes its execution, the previously saved registers are restored. This simplified approach allows for efficient and streamlined trap handling within the kernel.</p>
+<p>The rewritten C part of the trap handling code is the following:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">kernel_trap</span><span class="p">(){</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">uint64_t</span> <span class="n">cause</span> <span class="o">=</span> <span class="nf">read_scause</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">uint64_t</span> <span class="n">exp_code</span> <span class="o">=</span> <span class="nf">GET_EXP_CODE</span><span class="p">(</span><span class="n">cause</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="nf">IS_INTERRUPT</span><span class="p">(</span><span class="n">cause</span><span class="p">)){</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">exp_code</span> <span class="o">==</span> <span class="n">CAUSE_EXTI</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">            <span class="kt">int</span> <span class="n">irq</span> <span class="o">=</span> <span class="nf">trap_claim</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span><span class="p">(</span><span class="n">irq</span> <span class="o">==</span> <span class="n">UART0_IRQ</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">uart_isr</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span> <span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">irq</span> <span class="o">==</span> <span class="n">VIRTIO0_IRQ</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">disk_isr</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span> <span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">irq</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">printk</span><span class="p">(</span><span class="s">&#34;unexpected interrupt irq=%d</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">irq</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span>
+</span></span><span class="line"><span class="cl">            <span class="nf">trap_complete</span><span class="p">(</span><span class="n">irq</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span><span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">exp_code</span> <span class="o">==</span> <span class="n">CAUSE_SOFT</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span><span class="p">(</span><span class="nf">get_coreid</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="nf">clock_isr</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">            <span class="nf">write_sip</span><span class="p">(</span><span class="nf">read_sip</span><span class="p">()</span> <span class="o">&amp;</span> <span class="o">~</span><span class="mi">2</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span><span class="p">(</span><span class="nf">get_myproc</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="nf">get_myproc</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">state</span> <span class="o">==</span> <span class="n">RUNNING</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">                <span class="c1">// yield();
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="p">}</span> <span class="k">else</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">// error
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>The scause register provides crucial information regarding a trap. If the trap is not an interrupt, it is caused by a system call. However, if it is an interrupt, we can examine the exception code to determine the source of the interrupt by querying the PLIC. The interrupt could be triggered by devices such as UART or disk. One specific core should handle and process this trap.</p>
+<h1 id="vmc">vm.c</h1>
+<p>The function kernel_vm_init() is responsible for creating page tables that define the mapping of the kernel&rsquo;s address space. During this process, specific sections such as UART, Text, Data, PLIC, Virtio, and Trap are mapped to their corresponding virtual addresses. It&rsquo;s important to note that all sections, except for Trap, are directly mapped to their respective virtual addresses. However, Trap is unique in that it is mapped to the highest page within the virtual address space. Following is virtual address space of the Xv6 kernel:</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure  >
+  <img alt="Image alt" 
+               src="kvm_map_hu1323a63b9b8de467c3809f82f9e2e3e1_66252_ef2029b9fd6f13042d6c158ceb8653d5.webp"
+               width="637"
+               height="649"
+               loading="lazy" data-zoomable /></div>
+  </div></figure>
+</p>
+<p>The function map_pages() is designed to map a range of virtual addresses to corresponding physical addresses. It takes parameters: the virtual address, the size of the memory region to be mapped, and the physical address where the mapping should be established.
+To begin, map_pages() calculates the starting and ending addresses of the virtual address range that needs to be mapped. Using a while loop, map_pages() iteratively calls the function search_pt_tree() to map one page at a time.</p>
+<p>The function search_pt_tree() iterates through each level of the page table by extracting the page table index for each level. Using this index, it retrieves the corresponding physical address from the Page Table Entry (PTE). If the valid bit in the PTE is set, it indicates that we can directly proceed to the next level of the page table. If the valid bit is not set, it means that a physical page needs to be allocated for the next level of the page table. In the end, the function returns the address of the lowest level of the Page Table Entry (PTE).</p>
+<p>Function unmap_pages() does the opposite thing of map_pages(). It will goes through all levels of page table based on the virtual address and set the lowest level of PTE to 0 and free the coressponding physical data page by calling kfree().</p>
+<p>The unmap_pages() function performs the inverse operation of the map_pages() function. It traverses through all levels of the page table hierarchy based on the virtual address provided. The purpose of unmap_pages() is to invalidate the mapping between a virtual address and its corresponding physical data page.
+To achieve this, unmap_pages() sets the value of the lowest-level Page Table Entry (PTE) to 0. The PTE is responsible for storing the mapping information between a virtual page and its corresponding physical page. By setting it to 0, the mapping is removed.
+Additionally, unmap_pages() calls the kfree() function to free the corresponding physical data page.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-C" data-lang="C"><span class="line"><span class="cl"><span class="cm">/* 
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Xv6 runs on Sv39 RISC-V, which means that only the bottom 39 bits of a 64-bit virtual 
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * address are used; the top 25 bits are not used.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * The risc-v Sv39 scheme uses three levels of page-table pages. A page-table page 
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * contains 512 64-bit PTEs.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Each PTE contains a 44-bit physical page number (PPN) and some flags.
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * The paging hardware translates a virtual address by using the top 27 bits of the 39 
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * bits to index into the page table to find a PTE, and making a 56-bit physical address
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * whose top 44 bits come from the PPN in the PTE and whose bottom 12 bits are copied 
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * from the original virtual address. 
+</span></span></span><span class="line"><span class="cl"><span class="cm"> *
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * Virtual Address Structure:
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * +-------------+---------------+---------------+---------------+---------------------+
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * |     25      |       9       |       9       |       9       |          12         |
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * +-------------+---------------+---------------+---------------+---------------------+
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * |    39-63    |     30-38     |     21-29     |     12-20     |         0-11        |
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * +-------------+---------------+---------------+---------------+---------------------+
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * |  Must be 0  | Level-2 Index | Level-1 Index | Level-0 Index | Byte Offset in Page |
+</span></span></span><span class="line"><span class="cl"><span class="cm"> * +-------------+---------------+---------------+---------------+---------------------+
+</span></span></span><span class="line"><span class="cl"><span class="cm"> */</span>   
+</span></span><span class="line"><span class="cl"><span class="cm">/* Return the address of the PTE in page table pagetable that corresponds 
+</span></span></span><span class="line"><span class="cl"><span class="cm">to virtual address va. Create any required page-table pages if needed. */</span>
+</span></span><span class="line"><span class="cl"><span class="kt">pte_t</span><span class="o">*</span> <span class="nf">search_pt_tree</span><span class="p">(</span><span class="kt">ptb_t</span> <span class="n">pagetable</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">va</span><span class="p">,</span> <span class="kt">int</span> <span class="n">alloc</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">va</span> <span class="o">&gt;</span> <span class="n">MAXVA</span><span class="p">)</span> 
+</span></span><span class="line"><span class="cl">        <span class="nf">kerror</span><span class="p">(</span><span class="n">__FILE_NAME__</span><span class="p">,</span><span class="n">__LINE__</span><span class="p">,</span><span class="s">&#34;Illegal virtual memory address&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">level</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="n">level</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">;</span> <span class="n">level</span><span class="o">--</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* Get the index for the current level of page table */</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">uint64_t</span> <span class="n">idx</span> <span class="o">=</span> <span class="nf">GET_PT_IDX</span><span class="p">(</span><span class="n">va</span><span class="p">,</span> <span class="n">level</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="cm">/* Get PTE from page table */</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">pte_t</span><span class="o">*</span> <span class="n">pte</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">pagetable</span><span class="p">[</span><span class="n">idx</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="nf">PTE_VALID</span><span class="p">(</span><span class="o">*</span><span class="n">pte</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="cm">/* If this PTE is valid, then we get PA from this PTE and
+</span></span></span><span class="line"><span class="cl"><span class="cm">               may going into the next level of page table using this 
+</span></span></span><span class="line"><span class="cl"><span class="cm">               PA */</span>
+</span></span><span class="line"><span class="cl">            <span class="n">pagetable</span> <span class="o">=</span> <span class="p">(</span><span class="kt">ptb_t</span><span class="p">)</span><span class="nf">GET_PA</span><span class="p">(</span><span class="o">*</span><span class="n">pte</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="cm">/* If it is not valid (not initialized), then allocate 
+</span></span></span><span class="line"><span class="cl"><span class="cm">               and initialize the corresponding page table, return 
+</span></span></span><span class="line"><span class="cl"><span class="cm">               0 */</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">alloc</span> <span class="o">||</span> <span class="p">(</span><span class="n">pagetable</span> <span class="o">=</span> <span class="p">(</span><span class="kt">uint64_t</span><span class="o">*</span><span class="p">)</span><span class="nf">kmalloc</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">// printk(&#34;[vm.c] allocated page %p for level %d page table\n&#34;,
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="c1">// pagetable, level-1);
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="nf">memset</span><span class="p">(</span><span class="n">pagetable</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">PSIZE</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">            <span class="o">*</span><span class="n">pte</span> <span class="o">=</span> <span class="nf">GET_PTE</span><span class="p">(</span><span class="n">pagetable</span><span class="p">)</span> <span class="o">|</span> <span class="n">PTE_V</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="o">&amp;</span><span class="n">pagetable</span><span class="p">[</span><span class="nf">GET_PT_IDX</span><span class="p">(</span><span class="n">va</span><span class="p">,</span> <span class="mi">0</span><span class="p">)];</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">map_pages</span><span class="p">(</span><span class="kt">ptb_t</span> <span class="n">pagetable</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">va</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">size</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">pa</span><span class="p">,</span> <span class="kt">int</span> <span class="n">perm</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="kt">char</span><span class="o">*</span> <span class="n">purp</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">kerror</span><span class="p">(</span><span class="n">__FILE_NAME__</span><span class="p">,</span><span class="n">__LINE__</span><span class="p">,</span><span class="s">&#34;Incorrect size&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">uint64_t</span> <span class="n">curr_va</span> <span class="o">=</span> <span class="nf">ADDR_ROUND</span><span class="p">(</span><span class="n">va</span><span class="p">,</span> <span class="n">PSIZE</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">uint64_t</span> <span class="n">end_va</span>  <span class="o">=</span> <span class="nf">ADDR_ROUND</span><span class="p">((</span><span class="n">va</span><span class="o">+</span><span class="n">size</span><span class="p">),</span> <span class="n">PSIZE</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">printk</span><span class="p">(</span><span class="s">&#34;[vm.c] Mapping va[%p-%p] to pa[%p] for %s</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span><span class="n">curr_va</span><span class="p">,</span> <span class="n">end_va</span><span class="p">,</span> <span class="n">pa</span><span class="p">,</span> 
+</span></span><span class="line"><span class="cl">    <span class="n">purp</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">pte_t</span><span class="o">*</span> <span class="n">pte</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">while</span> <span class="p">(</span><span class="n">curr_va</span> <span class="o">&lt;</span> <span class="n">end_va</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">pte</span> <span class="o">=</span> <span class="nf">search_pt_tree</span><span class="p">(</span><span class="n">pagetable</span><span class="p">,</span> <span class="n">curr_va</span><span class="p">,</span> <span class="n">PG_ALLOC</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">pte</span><span class="p">)</span> <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="nf">PTE_VALID</span><span class="p">(</span><span class="o">*</span><span class="n">pte</span><span class="p">))</span> 
+</span></span><span class="line"><span class="cl">            <span class="nf">kerror</span><span class="p">(</span><span class="n">__FILE_NAME__</span><span class="p">,</span><span class="n">__LINE__</span><span class="p">,</span><span class="s">&#34;PTE already valid&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="o">*</span><span class="n">pte</span> <span class="o">=</span> <span class="nf">GET_PTE</span><span class="p">(</span><span class="n">pa</span><span class="p">)</span> <span class="o">|</span> <span class="n">perm</span> <span class="o">|</span> <span class="n">PTE_V</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">curr_va</span> <span class="o">+=</span> <span class="n">PSIZE</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">pa</span> <span class="o">+=</span> <span class="n">PSIZE</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">unmap_pages</span><span class="p">(</span><span class="kt">ptb_t</span> <span class="n">pagetable</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">va</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">size</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">kerror</span><span class="p">(</span><span class="n">__FILE_NAME__</span><span class="p">,</span><span class="n">__LINE__</span><span class="p">,</span><span class="s">&#34;Incorrect size&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">uint64_t</span> <span class="n">curr_va</span> <span class="o">=</span> <span class="nf">ADDR_ROUND</span><span class="p">(</span><span class="n">va</span><span class="p">,</span> <span class="n">PSIZE</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">uint64_t</span> <span class="n">end_va</span>  <span class="o">=</span> <span class="nf">ADDR_ROUND</span><span class="p">((</span><span class="n">va</span><span class="o">+</span><span class="n">size</span><span class="p">),</span> <span class="n">PSIZE</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">printk</span><span class="p">(</span><span class="s">&#34;[vm.c] Unmapping va[%p-%p]</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span><span class="n">curr_va</span><span class="p">,</span> <span class="n">end_va</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">pte_t</span><span class="o">*</span> <span class="n">pte</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">while</span> <span class="p">(</span><span class="n">curr_va</span> <span class="o">&lt;</span> <span class="n">end_va</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">((</span><span class="n">pte</span> <span class="o">=</span> <span class="nf">search_pt_tree</span><span class="p">(</span><span class="n">pagetable</span><span class="p">,</span> <span class="n">curr_va</span><span class="p">,</span> <span class="n">PG_NOT_ALLOC</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> 
+</span></span><span class="line"><span class="cl">            <span class="nf">kerror</span><span class="p">(</span><span class="n">__FILE_NAME__</span><span class="p">,</span><span class="n">__LINE__</span><span class="p">,</span><span class="s">&#34;search_pt_tree error&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">((</span><span class="o">*</span><span class="n">pte</span> <span class="o">&amp;</span> <span class="n">PTE_V</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">||</span> <span class="p">((</span><span class="o">*</span><span class="n">pte</span> <span class="o">&amp;</span> <span class="mh">0x3FF</span><span class="p">)</span> <span class="o">==</span> <span class="n">PTE_V</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">            <span class="nf">kerror</span><span class="p">(</span><span class="n">__FILE_NAME__</span><span class="p">,</span><span class="n">__LINE__</span><span class="p">,</span><span class="s">&#34;unmap page valid error&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">printk</span><span class="p">(</span><span class="s">&#34;kfree: %p</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span><span class="nf">GET_PA</span><span class="p">(</span><span class="o">*</span><span class="n">pte</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">kfree</span><span class="p">((</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span><span class="nf">GET_PA</span><span class="p">(</span><span class="o">*</span><span class="n">pte</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">        <span class="o">*</span><span class="n">pte</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">curr_va</span> <span class="o">+=</span> <span class="n">PSIZE</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h1 id="procc">proc.c</h1>
+  </div>
+  <div class="art-foot">
+    <a href="../../index.html">← Back to Home</a>
+  </div>
+</main>
+
+<script>
+const r=document.documentElement,s=localStorage.getItem('theme');
+if(s)r.setAttribute('data-theme',s);
+document.getElementById('tb').onclick=()=>{
+  const c=r.getAttribute('data-theme'),d=matchMedia('(prefers-color-scheme:dark)').matches,
+  n=!c?(d?'light':'dark'):c==='dark'?'light':'dark';
+  r.setAttribute('data-theme',n);localStorage.setItem('theme',n)};
+</script>
+</body>
+</html>

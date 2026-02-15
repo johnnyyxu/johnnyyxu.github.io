@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>x86 Notes | Yao Xu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#f2f2f7;--glass:rgba(255,255,255,.42);--glass-h:rgba(255,255,255,.62);
+      --glass-border:rgba(255,255,255,.6);--glass-border-b:rgba(0,0,0,.04);
+      --glass-sh:0 1px 3px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.05);
+      --glass-blur:20px;--glass-spec:rgba(255,255,255,.85);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.55) 0%,transparent 42%);
+      --nav-bg:rgba(242,242,247,.6);
+      --ink:#1d1d1f;--ink-2:#48484a;--ink-3:#8e8e93;--ink-4:#aeaeb2;
+      --blue:#0071e3;--code-bg:rgba(0,0,0,.03);
+      --sans:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+      --head:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+      --mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+      --bg:#000;--glass:rgba(255,255,255,.05);--glass-h:rgba(255,255,255,.09);
+      --glass-border:rgba(255,255,255,.08);--glass-border-b:rgba(255,255,255,.02);
+      --glass-sh:0 1px 3px rgba(0,0,0,.2),0 4px 16px rgba(0,0,0,.25),inset 0 .5px 0 rgba(255,255,255,.04);
+      --glass-blur:24px;--glass-spec:rgba(255,255,255,.12);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 42%);
+      --nav-bg:rgba(0,0,0,.5);
+      --ink:#f5f5f7;--ink-2:#a1a1a6;--ink-3:#6e6e73;--ink-4:#48484a;
+      --blue:#2997ff;--code-bg:rgba(255,255,255,.05);
+    }}
+    :root[data-theme="dark"]{
+      --bg:#000;--glass:rgba(255,255,255,.05);--glass-h:rgba(255,255,255,.09);
+      --glass-border:rgba(255,255,255,.08);--glass-border-b:rgba(255,255,255,.02);
+      --glass-sh:0 1px 3px rgba(0,0,0,.2),0 4px 16px rgba(0,0,0,.25),inset 0 .5px 0 rgba(255,255,255,.04);
+      --glass-blur:24px;--glass-spec:rgba(255,255,255,.12);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 42%);
+      --nav-bg:rgba(0,0,0,.5);
+      --ink:#f5f5f7;--ink-2:#a1a1a6;--ink-3:#6e6e73;--ink-4:#48484a;
+      --blue:#2997ff;--code-bg:rgba(255,255,255,.05);
+    }
+
+    html{scroll-behavior:smooth}
+    body{font-family:var(--sans);background:var(--bg);color:var(--ink);
+      -webkit-font-smoothing:antialiased;line-height:1.7;overflow-x:hidden;
+      transition:background .5s,color .3s}
+    ::selection{background:var(--blue);color:#fff}
+
+    body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+      background:
+        radial-gradient(ellipse 75% 50% at 5% 15%,rgba(0,122,255,.05) 0%,transparent 60%),
+        radial-gradient(ellipse 50% 55% at 92% 8%,rgba(175,82,222,.04) 0%,transparent 55%),
+        radial-gradient(ellipse 55% 45% at 72% 82%,rgba(52,199,89,.03) 0%,transparent 50%);
+    }
+
+    /* Nav */
+    nav{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:200;
+      width:min(calc(100% - 32px),600px);
+      backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);
+      background:var(--nav-bg);border:1px solid var(--glass-border);
+      border-radius:980px;box-shadow:var(--glass-sh);transition:box-shadow .3s}
+    nav::before{content:'';position:absolute;top:0;left:18%;right:18%;height:1px;
+      background:linear-gradient(90deg,transparent,var(--glass-spec),transparent);pointer-events:none}
+    .nv{padding:0 24px;height:46px;display:flex;align-items:center;justify-content:space-between}
+    .n-logo{font-family:var(--head);font-size:.95rem;font-weight:600;letter-spacing:-.02em;
+      color:var(--ink);text-decoration:none}
+    .n-back{font-size:.82rem;color:var(--ink-3);text-decoration:none;
+      display:flex;align-items:center;gap:6px;transition:color .2s}
+    .n-back:hover{color:var(--ink)}
+    .tb{display:flex;align-items:center;justify-content:center;width:32px;height:32px;
+      border-radius:50%;border:none;background:none;color:var(--ink-3);cursor:pointer;transition:all .2s}
+    .tb:hover{background:var(--glass-h);color:var(--ink)}
+    .is{display:none}.im{display:block}
+    @media(prefers-color-scheme:dark){
+      :root:not([data-theme="light"]) .is{display:block}
+      :root:not([data-theme="light"]) .im{display:none}
+    }
+    :root[data-theme="dark"] .is{display:block}
+    :root[data-theme="dark"] .im{display:none}
+    :root[data-theme="light"] .is{display:none}
+    :root[data-theme="light"] .im{display:block}
+
+    /* Article */
+    .art-wrap{max-width:740px;margin:0 auto;padding:100px 24px 80px}
+    .art-hd{margin-bottom:40px}
+    .art-title{font-family:var(--head);font-size:clamp(1.6rem,4vw,2.2rem);
+      font-weight:700;letter-spacing:-.03em;line-height:1.2;margin-bottom:10px}
+    .art-meta{font-size:.82rem;color:var(--ink-3)}
+
+    /* Prose */
+    .prose h1{font-family:var(--head);font-size:1.5rem;font-weight:700;letter-spacing:-.02em;
+      margin:48px 0 16px;line-height:1.3}
+    .prose h2{font-family:var(--head);font-size:1.25rem;font-weight:600;letter-spacing:-.02em;
+      margin:40px 0 14px;line-height:1.3}
+    .prose h3{font-family:var(--head);font-size:1.05rem;font-weight:600;
+      margin:32px 0 12px;line-height:1.4}
+    .prose p{margin-bottom:18px;color:var(--ink-2)}
+    .prose a{color:var(--blue);text-decoration:none}
+    .prose a:hover{text-decoration:underline}
+    .prose img{max-width:100%;height:auto;border-radius:12px;margin:24px 0;
+      box-shadow:var(--glass-sh)}
+    .prose figure{margin:24px 0}
+    .prose figure img{margin:0}
+    .prose ul,.prose ol{margin:0 0 18px 24px;color:var(--ink-2)}
+    .prose li{margin-bottom:6px}
+    .prose blockquote{border-left:3px solid var(--blue);padding:12px 20px;
+      margin:18px 0;background:var(--code-bg);border-radius:0 8px 8px 0;
+      color:var(--ink-3)}
+    .prose strong{font-weight:600;color:var(--ink)}
+    .prose code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);
+      padding:2px 6px;border-radius:4px;color:var(--ink-2)}
+    .prose pre{background:var(--code-bg);border:1px solid var(--glass-border);
+      border-radius:12px;padding:20px 24px;overflow-x:auto;margin:18px 0;
+      font-size:.84rem;line-height:1.6}
+    .prose pre code{background:none;padding:0;font-size:inherit}
+    .prose .highlight pre{background:var(--code-bg);border:1px solid var(--glass-border);
+      border-radius:12px;padding:20px 24px;overflow-x:auto;margin:18px 0}
+    .prose .highlight code{background:none;padding:0}
+    .prose table{width:100%;border-collapse:collapse;margin:18px 0;font-size:.88rem}
+    .prose th,.prose td{padding:10px 14px;border-bottom:1px solid var(--glass-border);
+      text-align:left}
+    .prose th{font-weight:600;color:var(--ink)}
+
+    .art-foot{margin-top:60px;padding-top:24px;border-top:1px solid var(--glass-border);
+      text-align:center}
+    .art-foot a{font-size:.88rem;color:var(--blue);text-decoration:none}
+    .art-foot a:hover{text-decoration:underline}
+
+    @media(max-width:600px){
+      .art-wrap{padding:80px 16px 60px}
+      .prose pre{padding:14px 16px;border-radius:8px;font-size:.78rem}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nv">
+    <a href="../../index.html" class="n-logo">Yao Xu</a>
+    <div style="display:flex;align-items:center;gap:8px">
+      <a href="../../index.html" class="n-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Home
+      </a>
+      <button class="tb" id="tb" aria-label="Toggle theme">
+        <svg class="is" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="im" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main class="art-wrap">
+  <header class="art-hd">
+    <h1 class="art-title">x86 Notes</h1>
+    <div class="art-meta">Jun 15, 2023 · 9 min read</div>
+  </header>
+  <div class="prose">
+    <h2 id="authors-a-cs107-joint-staff-effort-erik-julie-nate"><em>Authors: A CS107 joint staff effort (Erik, Julie, Nate)</em></h2>
+<p>x86-64 (also known as x64 and/or AMD64) is the 64-bit version of the x86/IA32 instruction set. Below is our overview of its features that are relevant to CS107. There is more extensive coverage on these topics in Chapter 3 of the B&amp;O textbook. See also our x86-64 sheet for a compact reference.</p>
+<h2 id="registers">Registers</h2>
+<p>The table below lists the commonly used registers (sixteen general-purpose plus two special). Each register is 64 bits wide; the lower 32-, 16- and 8-bit portions are selectable by a pseudo-register name. Some registers are designated for a certain purpose, such as <code>%rsp</code> being used as the stack pointer or <code>%rax</code> for the return value from a function. Other registers are all-purpose, but have a conventional use depending on whether caller-owned or callee-owned. If the function binky calls winky, we refer to binky as the caller and winky as the callee. For example, the registers used for the first 6 arguments and return value are all callee-owned. The callee can freely use those registers, overwriting existing values without taking any precautions. If <code>%rax</code> holds a value the caller wants to retain, the caller must copy the value to a &ldquo;safe&rdquo; location before making a call. The callee-owned registers are ideal for scratch/temporary use by the callee. In contrast, if the callee intends to use a caller-owned register, it must first preserve its value and restore it before exiting the call. The caller-owned registers are used for local state of the caller that needs to preserved across further function calls.</p>
+<table>
+<thead>
+<tr>
+<th>Register</th>
+<th>Conventional Use</th>
+<th>Low 32-bits</th>
+<th>Low 16-bits</th>
+<th>Low 8-bits</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>%rax</code></td>
+<td>Return value, callee-owned</td>
+<td><code>%eax</code></td>
+<td><code>%ax</code></td>
+<td><code>%al</code></td>
+</tr>
+<tr>
+<td><code>%rdi</code></td>
+<td>1st argument, callee-owned</td>
+<td><code>%edi</code></td>
+<td><code>%di</code></td>
+<td><code>%dil</code></td>
+</tr>
+<tr>
+<td><code>%rsi</code></td>
+<td>2nd argument, callee-owned</td>
+<td><code>%esi</code></td>
+<td><code>%si</code></td>
+<td><code>%sil</code></td>
+</tr>
+<tr>
+<td><code>%rdx</code></td>
+<td>3rd argument, callee-owned</td>
+<td><code>%edx</code></td>
+<td><code>%dx</code></td>
+<td><code>%dl</code></td>
+</tr>
+<tr>
+<td><code>%rcx</code></td>
+<td>4th argument, callee-owned</td>
+<td><code>%ecx</code></td>
+<td><code>%cx</code></td>
+<td><code>%cl</code></td>
+</tr>
+<tr>
+<td><code>%r8</code></td>
+<td>5th argument, callee-owned</td>
+<td><code>%r8d</code></td>
+<td><code>%r8w</code></td>
+<td><code>%r8b</code></td>
+</tr>
+<tr>
+<td><code>%r9</code></td>
+<td>6th argument, callee-owned</td>
+<td><code>%r9d</code></td>
+<td><code>%r9w</code></td>
+<td><code>%r9b</code></td>
+</tr>
+<tr>
+<td><code>%r10</code></td>
+<td>Scratch/temporary, callee-owned</td>
+<td><code>%r10d</code></td>
+<td><code>%r10w</code></td>
+<td><code>%r10b</code></td>
+</tr>
+<tr>
+<td><code>%r11</code></td>
+<td>Scratch/temporary, callee-owned</td>
+<td><code>%r11d</code></td>
+<td><code>%r11w</code></td>
+<td><code>%r11b</code></td>
+</tr>
+<tr>
+<td><code>%rsp</code></td>
+<td>Stack pointer, caller-owned</td>
+<td><code>%esp</code></td>
+<td><code>%sp</code></td>
+<td><code>%spl</code></td>
+</tr>
+<tr>
+<td><code>%rbx</code></td>
+<td>Local variable, caller-owned</td>
+<td><code>%ebx</code></td>
+<td><code>%bx</code></td>
+<td><code>%bl</code></td>
+</tr>
+<tr>
+<td><code>%rbp</code></td>
+<td>Local variable, caller-owned</td>
+<td><code>%ebp</code></td>
+<td><code>%bp</code></td>
+<td><code>%bpl</code></td>
+</tr>
+<tr>
+<td><code>%r12</code></td>
+<td>Local variable, caller-owned</td>
+<td><code>%r12d</code></td>
+<td><code>%r12w</code></td>
+<td><code>%r12b</code></td>
+</tr>
+<tr>
+<td><code>%r13</code></td>
+<td>Local variable, caller-owned</td>
+<td><code>%r13d</code></td>
+<td><code>%r13w</code></td>
+<td><code>%r13b</code></td>
+</tr>
+<tr>
+<td><code>%r14</code></td>
+<td>Local variable, caller-owned</td>
+<td><code>%r14d</code></td>
+<td><code>%r14w</code></td>
+<td><code>%r14b</code></td>
+</tr>
+<tr>
+<td><code>%r15</code></td>
+<td>Local variable, caller-owned</td>
+<td><code>%r15d</code></td>
+<td><code>%r15w</code></td>
+<td><code>%r15b</code></td>
+</tr>
+<tr>
+<td><code>%rip</code></td>
+<td>Instruction pointer</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>%eflags</code></td>
+<td>Status/condition code bits</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="addressing-modes">Addressing Modes</h2>
+<p>True to its CISC nature, x86-64 supports a variety of addressing modes. An addressing mode is an expression that calculates an address in memory to be read/written to. These expressions are used as the source or destination for a <code>mov</code> instruction and other instructions that access memory. The code below demonstrates how to write the immediate value 1 to various memory locations in an example of each of the available addressing modes:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">movl $1, 0x604892         # direct (address is constant value)
+</span></span><span class="line"><span class="cl">movl $1, (%rax)           # indirect (address is in register %rax)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">movl $1, -24(%rbp)        # indirect with displacement
+</span></span><span class="line"><span class="cl">                          # (address = base %rbp + displacement -24)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">movl $1, 8(%rsp, %rdi, 4) # indirect with displacement and scaled-index
+</span></span><span class="line"><span class="cl">                          # (address = base %rsp + displ 8 + index %rdi * scale 4)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">movl $1, (%rax, %rcx, 8)  # (special case scaled-index, displ assumed 0)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">movl $1, 0x8(, %rdx, 4)   # (special case scaled
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">-index, base assumed 0)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">movl $1, 0x4(%rax, %rcx)  # (special case scaled-index, scale assumed 1)
+</span></span></code></pre></div><h2 id="common-instructions">Common Instructions</h2>
+<p>A note about instruction suffixes: many instructions have a suffix (<code>b</code>, <code>w</code>, <code>l</code>, or <code>q</code>) which indicates the bitwidth of the operation (1, 2, 4, or 8 bytes, respectively). The suffix is often elided when the bitwidth can be determined from the operands. For example, if the destination register is <code>%eax</code>, it must be 4 bytes, if <code>%ax</code> it must be 2 bytes, and <code>%al</code> would be 1 byte. A few instructions such as <code>movs</code> and <code>movz</code> have two suffixes: the first is for the source operand, the second for the destination. For example, <code>movzbl</code> moves a 1-byte source value to a 4-byte destination.</p>
+<p>When the destination is a sub-register, only those specific bytes in the sub-register are written with one broad exception: a 32-bit instruction zeroes the high-order 32 bits of the destination register.</p>
+<ul>
+<li><code>add src, dst</code>: dst += src</li>
+<li><code>sub src, dst</code>: dst -= src</li>
+<li><code>imul src, dst</code>: dst *= src</li>
+<li><code>neg dst</code>: dst = -dst (arithmetic inverse)</li>
+<li><code>and src, dst</code>: dst &amp;= src</li>
+<li><code>or src, dst</code>: dst |= src</li>
+<li><code>xor src, dst</code>: dst ^= src</li>
+<li><code>not dst</code>: dst = ~dst (bitwise inverse)</li>
+<li><code>shl count, dst</code>: dst &laquo;= count (left shift dst by count positions), synonym <code>sal</code></li>
+<li><code>sar count, dst</code>: dst &raquo;= count (arithmetic right shift dst by count positions)</li>
+<li><code>shr count, dst</code>: dst &raquo;= count (logical right shift dst by count positions)</li>
+</ul>
+<p>Some instructions have special-case variants with different numbers of operands:</p>
+<ul>
+<li><code>imul src</code>: single operand <code>imul</code> assumes the other operand is in <code>%rax</code>, computes 128-bit result, stores high 64-bits in <code>%rdx</code>, low 64-bits in <code>%rax</code></li>
+<li><code>shl dst</code>: dst &laquo;= 1 (no count =&gt; assume 1, same for <code>sar</code>, <code>shr</code>, <code>sal</code>)</li>
+</ul>
+<h2 id="branches-and-other-use-of-condition-codes">Branches and Other Use of Condition Codes</h2>
+<p>The special <code>%eflags</code> register stores a set of boolean flags called the condition codes. Most arithmetic operations update those codes. A conditional jump reads the condition codes to determine whether to take the branch or not. The condition codes include ZF (zero flag), SF (sign flag), OF (overflow flag, signed), and CF (carry flag, unsigned). For example, if the result was zero, the ZF is set; if an operation overflowed (into the sign bit), OF is set.</p>
+<p>The general pattern for all branches is to execute a <code>cmp</code> or <code>test</code> operation to set the flags followed by a jump instruction variant that reads the flags to determine whether to take the branch or continue on. The operands to a <code>cmp</code> or <code>test</code> are immediate, register, or memory locations (with at most one memory operand). There are 32 variants of conditional jump, several of which are synonyms. Here are some example branch instructions.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-mysql" data-lang="mysql"><span class="line"><span class="cl"><span class="n">cmpl</span><span class="w"> </span><span class="n">op2</span><span class="p">,</span><span class="w"> </span><span class="n">op1</span><span class="w">    </span><span class="c1"># computes result = op1 - op2, discards result, sets condition codes
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">test</span><span class="w"> </span><span class="n">op2</span><span class="p">,</span><span class="w"> </span><span class="n">op1</span><span class="w">    </span><span class="c1"># computes result = op1 &amp; op2, discards result, sets condition codes
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">jmp</span><span class="w"> </span><span class="n">target</span><span class="w">    </span><span class="c1"># unconditional jump
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">je</span><span class="w"> </span><span class="n">target</span><span class="w">    </span><span class="c1"># jump equal, synonym `jz` (jump zero, ZF=1)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">jne</span><span class="w"> </span><span class="n">target</span><span class="w">    </span><span class="c1"># jump not equal, synonym `jnz` (jump non-zero, ZF=0)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">js</span><span class="w"> </span><span class="n">target</span><span class="w">    </span><span class="c1"># jump signed (SF=1)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">jns</span><span class="w"> </span><span class="n">target</span><span class="w">    </span><span class="c1"># jump not signed (SF=0)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">jg</span><span class="w"> </span><span class="n">target</span><span class="w">    </span><span class="c1"># jump greater than, synonym `jnle` (jump not less or equal, ZF=0 and SF=OF)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">jge</span><span class="w"> </span><span class="n">target</span><span class="w">    </span><span class="c1"># jump greater or equal, synonym `jnl` (jump not less, SF=OF)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">jl</span><span class="w"> </span><span class="n">target</span><span class="w">    </span><span class="c1"># jump less than, synonym `jnge` (jump not greater or equal, SF!=OF)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">jle</span><span class="w"> </span><span class="n">target</span><span class="w">    </span><span class="c1"># jump less or equal, synonym `jng` (jump not greater, ZF=1 or SF!=OF)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">ja</span><span class="w"> </span><span class="n">target</span><span class="w">    </span><span class="c1"># jump above, synonym `jnbe` (jump not below or equal, CF=0 and ZF=0)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">jae</span><span class="w"> </span><span class="n">target</span><span class="w">    </span><span class="c1"># jump above or equal (CF=0)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">jb</span><span class="w"> </span><span class="n">target</span><span class="w">    </span><span class="c1"># jump below, synonym `jnae` (jump not above or equal, CF=1)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">jbe</span><span class="w"> </span><span class="n">target</span><span class="w">    </span><span class="c1"># jump below or equal (CF=1 or ZF=1)
+</span></span></span></code></pre></div><h2 id="setx-and-movx">Setx and Movx</h2>
+<p>There are two other families of instructions that read/react to the current condition codes. The <code>setx</code> instructions set a destination register to 0 or 1 according to the status of condition <code>x</code>. The <code>cmovx</code> instructions will conditionally execute a move based on whether condition <code>x</code> holds. The <code>x</code> is a placeholder for any of the conditional variants: <code>e</code>, <code>ne</code>, <code>s</code>, <code>ns</code>, etc.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-mysql" data-lang="mysql"><span class="line"><span class="cl"><span class="n">sete</span><span class="w"> </span><span class="n">dst</span><span class="w">           </span><span class="c1"># set `dst` to 0 or 1 based on zero/equal condition
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">setge</span><span class="w"> </span><span class="n">dst</span><span class="w">          </span><span class="c1"># set `dst` to 0 or 1 based on greater/equal condition
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">cmovns</span><span class="w"> </span><span class="n">src</span><span class="p">,</span><span class="w"> </span><span class="n">dst</span><span class="w">    </span><span class="c1"># proceed with `mov` if `ns` condition holds
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">cmovle</span><span class="w"> </span><span class="n">src</span><span class="p">,</span><span class="w"> </span><span class="n">dst</span><span class="w">    </span><span class="c1"># proceed with `mov` if `le` condition holds
+</span></span></span></code></pre></div><p>For the <code>setx</code> instruction, the destination must be a single-byte sub-register (e.g., <code>%al</code> for the low byte of <code>%rax</code>). For the <code>cmovx</code> instructions, both the source and destination must be registers.</p>
+<h2 id="function-call-stack">Function Call Stack</h2>
+<p>The <code>%rsp</code> register is used as the &ldquo;stack pointer&rdquo;; <code>push</code> and <code>pop</code> are used to add/remove values from the stack. The <code>push</code> instruction takes one operand: an immediate, a register, or a memory location. <code>Push</code> decrements <code>%rsp</code> and copies the operand to be topmost on the stack. The <code>pop</code> instruction takes one operand, the destination register. `Pop</p>
+<p><code>copies the topmost value to the destination and increments</code>%rsp<code>. It is also valid to directly adjust </code>%rsp` to add/remove an entire array or a collection of variables with a single operation. Note the stack grows downward (toward lower addresses).</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">push %rbx         # push value of `%rbx` onto the stack
+</span></span><span class="line"><span class="cl">pushq $0x3        # push immediate value `3` onto the stack
+</span></span><span class="line"><span class="cl">sub $0x10, %rsp   # adjust stack pointer to set aside 16 more bytes
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">pop %rax          # pop topmost value from stack into register `%rax`
+</span></span><span class="line"><span class="cl">add $0x10, %rsp   # adjust stack point to remove topmost 16 bytes
+</span></span></code></pre></div><p>Call/return are used to transfer control between functions. The <code>callq</code> instruction takes one operand, the address of the function being called. It pushes the return address (current value of <code>%rip</code>, which is the next instruction after the <code>call</code>) onto the stack and then jumps to the address of the function being called. The <code>retq</code> instruction pops the return address from the stack into <code>%rip</code>, thus resuming at the saved return address.</p>
+<p>To set up for a call, the caller puts the first six arguments into registers <code>%rdi</code>, <code>%rsi</code>, <code>%rdx</code>, <code>%rcx</code>, <code>%r8</code>, and <code>%r9</code> (any additional arguments are pushed onto the stack) and then executes the <code>call</code> instruction.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">mov $0x3, %rdi    # first arg is passed in `%rdi`
+</span></span><span class="line"><span class="cl">mov $0x7, %rsi    # second arg is passed in `%rsi`
+</span></span><span class="line"><span class="cl">callq binky       # transfers control to function binky
+</span></span></code></pre></div><p>When the callee finishes, it writes the return value (if any) to <code>%rax</code>, cleans up the stack, and uses the <code>retq</code> instruction to return control to the caller.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">mov $0x0, %eax    # write return value to `%rax`
+</span></span><span class="line"><span class="cl">add $0x10, %rsp   # deallocate stack frame
+</span></span><span class="line"><span class="cl">retq              # return from current function, resume caller
+</span></span></code></pre></div><p>The target for a branch or call instruction is most typically an absolute address that was determined at compile-time. However, there are cases where the target is not known until runtime, such as a switch statement compiled into a jump table or when invoking a function pointer. For these, the target address is computed and stored in a register, and the branch/call variant is used <code>je *%rax</code> or <code>callq *%rax</code> to read the target address from the specified register.</p>
+<h2 id="assembly-and-gdb">Assembly and gdb</h2>
+<p>The debugger has many features that allow you to trace and debug code at the assembly level. You can print the value in a register by prefixing its name with <code>$</code> or use the command <code>info reg</code> to dump the values of all registers:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">(gdb) p $rsp
+</span></span><span class="line"><span class="cl">(gdb) info reg
+</span></span></code></pre></div><p>The <code>disassemble</code> command will print the disassembly for a function by name. The <code>x</code> command supports an <code>i</code> format which interprets the contents of a memory address as an encoded instruction.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">(gdb) disassemble main   // disassemble, print all instructions of main
+</span></span><span class="line"><span class="cl">(gdb) x/8i main          // disassemble, print first 8 instructions
+</span></span></code></pre></div><p>You can set a breakpoint at a particular assembly instruction by its direct address or offset within a function:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">(gdb) b *0x08048375
+</span></span><span class="line"><span class="cl">(gdb) b *main+7          // break at instruction 7 bytes into main
+</span></span></code></pre></div><p>You can advance by instruction (instead of source line) using the <code>stepi</code> and <code>nexti</code> commands.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">(gdb) stepi
+</span></span><span class="line"><span class="cl">(gdb) nexti
+</span></span></code></pre></div>
+  </div>
+  <div class="art-foot">
+    <a href="../../index.html">← Back to Home</a>
+  </div>
+</main>
+
+<script>
+const r=document.documentElement,s=localStorage.getItem('theme');
+if(s)r.setAttribute('data-theme',s);
+document.getElementById('tb').onclick=()=>{
+  const c=r.getAttribute('data-theme'),d=matchMedia('(prefers-color-scheme:dark)').matches,
+  n=!c?(d?'light':'dark'):c==='dark'?'light':'dark';
+  r.setAttribute('data-theme',n);localStorage.setItem('theme',n)};
+</script>
+</body>
+</html>

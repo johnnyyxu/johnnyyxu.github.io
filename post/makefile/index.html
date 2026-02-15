@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Make | Yao Xu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#f2f2f7;--glass:rgba(255,255,255,.42);--glass-h:rgba(255,255,255,.62);
+      --glass-border:rgba(255,255,255,.6);--glass-border-b:rgba(0,0,0,.04);
+      --glass-sh:0 1px 3px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.05);
+      --glass-blur:20px;--glass-spec:rgba(255,255,255,.85);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.55) 0%,transparent 42%);
+      --nav-bg:rgba(242,242,247,.6);
+      --ink:#1d1d1f;--ink-2:#48484a;--ink-3:#8e8e93;--ink-4:#aeaeb2;
+      --blue:#0071e3;--code-bg:rgba(0,0,0,.03);
+      --sans:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+      --head:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+      --mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+      --bg:#000;--glass:rgba(255,255,255,.05);--glass-h:rgba(255,255,255,.09);
+      --glass-border:rgba(255,255,255,.08);--glass-border-b:rgba(255,255,255,.02);
+      --glass-sh:0 1px 3px rgba(0,0,0,.2),0 4px 16px rgba(0,0,0,.25),inset 0 .5px 0 rgba(255,255,255,.04);
+      --glass-blur:24px;--glass-spec:rgba(255,255,255,.12);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 42%);
+      --nav-bg:rgba(0,0,0,.5);
+      --ink:#f5f5f7;--ink-2:#a1a1a6;--ink-3:#6e6e73;--ink-4:#48484a;
+      --blue:#2997ff;--code-bg:rgba(255,255,255,.05);
+    }}
+    :root[data-theme="dark"]{
+      --bg:#000;--glass:rgba(255,255,255,.05);--glass-h:rgba(255,255,255,.09);
+      --glass-border:rgba(255,255,255,.08);--glass-border-b:rgba(255,255,255,.02);
+      --glass-sh:0 1px 3px rgba(0,0,0,.2),0 4px 16px rgba(0,0,0,.25),inset 0 .5px 0 rgba(255,255,255,.04);
+      --glass-blur:24px;--glass-spec:rgba(255,255,255,.12);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 42%);
+      --nav-bg:rgba(0,0,0,.5);
+      --ink:#f5f5f7;--ink-2:#a1a1a6;--ink-3:#6e6e73;--ink-4:#48484a;
+      --blue:#2997ff;--code-bg:rgba(255,255,255,.05);
+    }
+
+    html{scroll-behavior:smooth}
+    body{font-family:var(--sans);background:var(--bg);color:var(--ink);
+      -webkit-font-smoothing:antialiased;line-height:1.7;overflow-x:hidden;
+      transition:background .5s,color .3s}
+    ::selection{background:var(--blue);color:#fff}
+
+    body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+      background:
+        radial-gradient(ellipse 75% 50% at 5% 15%,rgba(0,122,255,.05) 0%,transparent 60%),
+        radial-gradient(ellipse 50% 55% at 92% 8%,rgba(175,82,222,.04) 0%,transparent 55%),
+        radial-gradient(ellipse 55% 45% at 72% 82%,rgba(52,199,89,.03) 0%,transparent 50%);
+    }
+
+    /* Nav */
+    nav{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:200;
+      width:min(calc(100% - 32px),600px);
+      backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);
+      background:var(--nav-bg);border:1px solid var(--glass-border);
+      border-radius:980px;box-shadow:var(--glass-sh);transition:box-shadow .3s}
+    nav::before{content:'';position:absolute;top:0;left:18%;right:18%;height:1px;
+      background:linear-gradient(90deg,transparent,var(--glass-spec),transparent);pointer-events:none}
+    .nv{padding:0 24px;height:46px;display:flex;align-items:center;justify-content:space-between}
+    .n-logo{font-family:var(--head);font-size:.95rem;font-weight:600;letter-spacing:-.02em;
+      color:var(--ink);text-decoration:none}
+    .n-back{font-size:.82rem;color:var(--ink-3);text-decoration:none;
+      display:flex;align-items:center;gap:6px;transition:color .2s}
+    .n-back:hover{color:var(--ink)}
+    .tb{display:flex;align-items:center;justify-content:center;width:32px;height:32px;
+      border-radius:50%;border:none;background:none;color:var(--ink-3);cursor:pointer;transition:all .2s}
+    .tb:hover{background:var(--glass-h);color:var(--ink)}
+    .is{display:none}.im{display:block}
+    @media(prefers-color-scheme:dark){
+      :root:not([data-theme="light"]) .is{display:block}
+      :root:not([data-theme="light"]) .im{display:none}
+    }
+    :root[data-theme="dark"] .is{display:block}
+    :root[data-theme="dark"] .im{display:none}
+    :root[data-theme="light"] .is{display:none}
+    :root[data-theme="light"] .im{display:block}
+
+    /* Article */
+    .art-wrap{max-width:740px;margin:0 auto;padding:100px 24px 80px}
+    .art-hd{margin-bottom:40px}
+    .art-title{font-family:var(--head);font-size:clamp(1.6rem,4vw,2.2rem);
+      font-weight:700;letter-spacing:-.03em;line-height:1.2;margin-bottom:10px}
+    .art-meta{font-size:.82rem;color:var(--ink-3)}
+
+    /* Prose */
+    .prose h1{font-family:var(--head);font-size:1.5rem;font-weight:700;letter-spacing:-.02em;
+      margin:48px 0 16px;line-height:1.3}
+    .prose h2{font-family:var(--head);font-size:1.25rem;font-weight:600;letter-spacing:-.02em;
+      margin:40px 0 14px;line-height:1.3}
+    .prose h3{font-family:var(--head);font-size:1.05rem;font-weight:600;
+      margin:32px 0 12px;line-height:1.4}
+    .prose p{margin-bottom:18px;color:var(--ink-2)}
+    .prose a{color:var(--blue);text-decoration:none}
+    .prose a:hover{text-decoration:underline}
+    .prose img{max-width:100%;height:auto;border-radius:12px;margin:24px 0;
+      box-shadow:var(--glass-sh)}
+    .prose figure{margin:24px 0}
+    .prose figure img{margin:0}
+    .prose ul,.prose ol{margin:0 0 18px 24px;color:var(--ink-2)}
+    .prose li{margin-bottom:6px}
+    .prose blockquote{border-left:3px solid var(--blue);padding:12px 20px;
+      margin:18px 0;background:var(--code-bg);border-radius:0 8px 8px 0;
+      color:var(--ink-3)}
+    .prose strong{font-weight:600;color:var(--ink)}
+    .prose code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);
+      padding:2px 6px;border-radius:4px;color:var(--ink-2)}
+    .prose pre{background:var(--code-bg);border:1px solid var(--glass-border);
+      border-radius:12px;padding:20px 24px;overflow-x:auto;margin:18px 0;
+      font-size:.84rem;line-height:1.6}
+    .prose pre code{background:none;padding:0;font-size:inherit}
+    .prose .highlight pre{background:var(--code-bg);border:1px solid var(--glass-border);
+      border-radius:12px;padding:20px 24px;overflow-x:auto;margin:18px 0}
+    .prose .highlight code{background:none;padding:0}
+    .prose table{width:100%;border-collapse:collapse;margin:18px 0;font-size:.88rem}
+    .prose th,.prose td{padding:10px 14px;border-bottom:1px solid var(--glass-border);
+      text-align:left}
+    .prose th{font-weight:600;color:var(--ink)}
+
+    .art-foot{margin-top:60px;padding-top:24px;border-top:1px solid var(--glass-border);
+      text-align:center}
+    .art-foot a{font-size:.88rem;color:var(--blue);text-decoration:none}
+    .art-foot a:hover{text-decoration:underline}
+
+    @media(max-width:600px){
+      .art-wrap{padding:80px 16px 60px}
+      .prose pre{padding:14px 16px;border-radius:8px;font-size:.78rem}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nv">
+    <a href="../../index.html" class="n-logo">Yao Xu</a>
+    <div style="display:flex;align-items:center;gap:8px">
+      <a href="../../index.html" class="n-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Home
+      </a>
+      <button class="tb" id="tb" aria-label="Toggle theme">
+        <svg class="is" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="im" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main class="art-wrap">
+  <header class="art-hd">
+    <h1 class="art-title">About Make</h1>
+    <div class="art-meta">Apr 29, 2023 · 8 min read</div>
+  </header>
+  <div class="prose">
+    <!-- ```python
+import libr
+print('hello')
+``` -->
+<h2 id="1-introduction">1. Introduction</h2>
+<p>The make utility automatically determines which pieces of a large program need to be recompiled, and issues commands to recompile them. You need a file called a makefile to tell make what to do. Most often, the makefile tells make how to compile and link a program.</p>
+<h3 id="syntax">Syntax</h3>
+<p>A Makefile contains some rules with the following shape:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-make" data-lang="make"><span class="line"><span class="cl"><span class="nf">target … </span><span class="o">:</span> <span class="n">prerequisites</span> …
+</span></span><span class="line"><span class="cl">        recipe
+</span></span><span class="line"><span class="cl">        …
+</span></span><span class="line"><span class="cl">        …
+</span></span></code></pre></div><ul>
+<li>A target is usually the name of a file that is generated by a program; examples of targets are executable or object files. A target can also be the name of an action to carry out, such as ‘clean’.</li>
+<li>The prerequisites are also file names, separated by spaces. These files need to exist before the commands for the target are run. These are also called dependencies.</li>
+<li>The commands are a series of steps typically used to make the target(s). These need to <span style="color:orange">start with a tab character, not spaces.</span></li>
+</ul>
+<p>Here is a typical Makefile - one that compiles a single C file:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-make" data-lang="make"><span class="line"><span class="cl"><span class="nf">test</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">	cc test.c -o <span class="nb">test</span>
+</span></span></code></pre></div><p>We can simply running make. Since there&rsquo;s no target supplied as an argument to the make command, the first target is run. In this case, there&rsquo;s only one target (test). The first time you run this, test will be created. The second time, you&rsquo;ll see make: &rsquo;test&rsquo; is up to date. That&rsquo;s because the test file already exists. <span style="color:orange">But there&rsquo;s a problem: if we modify test.c and then run make, nothing gets recompiled.</span></p>
+<p>Instead, we can do this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-make" data-lang="make"><span class="line"><span class="cl"><span class="nf">test</span><span class="o">:</span> <span class="n">test</span>.<span class="n">c</span>
+</span></span><span class="line"><span class="cl">	cc test.c -o <span class="nb">test</span>
+</span></span></code></pre></div><p>When we run make again, the following set of steps happens:</p>
+<ul>
+<li>The first target is selected, because the first target is the default target</li>
+<li>This has a prerequisite of test.c</li>
+<li>Make decides if it should run the test target. It will only run if <span style="color:orange">test doesn&rsquo;t exist, or test.c is newer than test.</span></li>
+</ul>
+<p>Here is a more complicated example:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-make" data-lang="make"><span class="line"><span class="cl"><span class="nf">edit </span><span class="o">:</span> <span class="n">main</span>.<span class="n">o</span> <span class="n">kbd</span>.<span class="n">o</span> <span class="n">command</span>.<span class="n">o</span> <span class="n">display</span>.<span class="n">o</span> \
+</span></span><span class="line"><span class="cl">       <span class="n">insert</span>.<span class="n">o</span> <span class="n">search</span>.<span class="n">o</span> <span class="n">files</span>.<span class="n">o</span> <span class="n">utils</span>.<span class="n">o</span>
+</span></span><span class="line"><span class="cl">        cc -o edit main.o kbd.o command.o display.o <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>                   insert.o search.o files.o utils.o
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">main.o </span><span class="o">:</span> <span class="n">main</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">        cc -c main.c
+</span></span><span class="line"><span class="cl"><span class="nf">kbd.o </span><span class="o">:</span> <span class="n">kbd</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">command</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">        cc -c kbd.c
+</span></span><span class="line"><span class="cl"><span class="nf">command.o </span><span class="o">:</span> <span class="n">command</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">command</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">        cc -c command.c
+</span></span><span class="line"><span class="cl"><span class="nf">display.o </span><span class="o">:</span> <span class="n">display</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">buffer</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">        cc -c display.c
+</span></span><span class="line"><span class="cl"><span class="nf">insert.o </span><span class="o">:</span> <span class="n">insert</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">buffer</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">        cc -c insert.c
+</span></span><span class="line"><span class="cl"><span class="nf">search.o </span><span class="o">:</span> <span class="n">search</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">buffer</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">        cc -c search.c
+</span></span><span class="line"><span class="cl"><span class="nf">files.o </span><span class="o">:</span> <span class="n">files</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">buffer</span>.<span class="n">h</span> <span class="n">command</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">        cc -c files.c
+</span></span><span class="line"><span class="cl"><span class="nf">utils.o </span><span class="o">:</span> <span class="n">utils</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">        cc -c utils.c
+</span></span><span class="line"><span class="cl"><span class="nf">clean </span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">        rm edit main.o kbd.o command.o display.o <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>           insert.o search.o files.o utils.o
+</span></span></code></pre></div><p>Edit is a target that requires eight prerequisites. The command is to compile executable file &ldquo;edit&rdquo; with eight object files. Each of the object file requires some C files and header files. We do not need to include header file name in the command since it is already included in the C file and the purpose to include header files in the prerequisites is to make sure the file is already there, just like a additional verification.</p>
+<p>When a target is a file, it needs to be recompiled or relinked if any of its prerequisites change. In addition, any prerequisites that are themselves automatically generated should be updated first. In this example, edit depends on each of the eight object files; the object file main.o depends on the source file main.c and on the header file defs.h.</p>
+<h3 id="make-clean">Make clean</h3>
+<p>The target ‘clean’ is not a file, but merely the name of an action. Since you normally do not want to carry out the actions in this rule, ‘clean’ is not a prerequisite of any other rule. Consequently, make never does anything with it unless you tell it specifically. Note that this rule not only is not a prerequisite, it also does not have any prerequisites, so the only purpose of the rule is to run the specified recipe. Targets that do not refer to files but are just actions are called phony targets.</p>
+<h3 id="variables">Variables</h3>
+<p>If a new object file is added to the system, we might add it to one list and forget the other, such duplication is error-prone. Instead, we can do this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-make" data-lang="make"><span class="line"><span class="cl"><span class="nv">objects</span> <span class="o">=</span> main.o kbd.o command.o display.o <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>          insert.o search.o files.o utils.o
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">edit </span><span class="o">:</span> <span class="k">$(</span><span class="nv">objects</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">        cc -o edit <span class="k">$(</span>objects<span class="k">)</span>
+</span></span><span class="line"><span class="cl"><span class="nf">main.o </span><span class="o">:</span> <span class="n">main</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">        cc -c main.c
+</span></span><span class="line"><span class="cl"><span class="nf">kbd.o </span><span class="o">:</span> <span class="n">kbd</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">command</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">        cc -c kbd.c
+</span></span><span class="line"><span class="cl"><span class="nf">command.o </span><span class="o">:</span> <span class="n">command</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">command</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">        cc -c command.c
+</span></span><span class="line"><span class="cl"><span class="nf">display.o </span><span class="o">:</span> <span class="n">display</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">buffer</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">        cc -c display.c
+</span></span><span class="line"><span class="cl"><span class="nf">insert.o </span><span class="o">:</span> <span class="n">insert</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">buffer</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">        cc -c insert.c
+</span></span><span class="line"><span class="cl"><span class="nf">search.o </span><span class="o">:</span> <span class="n">search</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">buffer</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">        cc -c search.c
+</span></span><span class="line"><span class="cl"><span class="nf">files.o </span><span class="o">:</span> <span class="n">files</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">buffer</span>.<span class="n">h</span> <span class="n">command</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">        cc -c files.c
+</span></span><span class="line"><span class="cl"><span class="nf">utils.o </span><span class="o">:</span> <span class="n">utils</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">        cc -c utils.c
+</span></span><span class="line"><span class="cl"><span class="nf">clean </span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">        rm edit <span class="k">$(</span>objects<span class="k">)</span>
+</span></span></code></pre></div><p>Other examples of using variables:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-make" data-lang="make"><span class="line"><span class="cl"><span class="nv">a</span> <span class="o">:=</span> one two <span class="c1"># a is assigned to the string &#34;one two&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="nf">all</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">	<span class="nb">printf</span> <span class="s1">&#39;$a&#39;</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-make" data-lang="make"><span class="line"><span class="cl"><span class="nv">x</span> <span class="o">:=</span> dude
+</span></span><span class="line"><span class="cl"><span class="nf">all</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">	<span class="nb">echo</span> <span class="k">$(</span>x<span class="k">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nb">echo</span> <span class="si">${</span><span class="nv">x</span><span class="si">}</span>
+</span></span></code></pre></div><h3 id="letting-make-deduce-the-recipes">Letting make Deduce the Recipes</h3>
+<p>It is not necessary to spell out the recipes for compiling the individual C source files, because make can figure them out: it has an implicit rule for updating a ‘.o’ file from a correspondingly named ‘.c’ file using a ‘cc -c’ command. For example, it will use the recipe ‘cc -c main.c -o main.o’ to compile main.c into main.o. We can therefore omit the recipes from the rules for the object files.</p>
+<p>When a ‘.c’ file is used automatically in this way, it is also automatically added to the list of prerequisites. We can therefore omit the ‘.c’ files from the prerequisites, provided we omit the recipe.</p>
+<p>Here is the entire example, with both of these changes, and a variable objects as suggested above:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-make" data-lang="make"><span class="line"><span class="cl"><span class="nv">objects</span> <span class="o">=</span> main.o kbd.o command.o display.o <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>          insert.o search.o files.o utils.o
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">edit </span><span class="o">:</span> <span class="k">$(</span><span class="nv">objects</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">        cc -o edit <span class="k">$(</span>objects<span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">main.o </span><span class="o">:</span> <span class="n">defs</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl"><span class="nf">kbd.o </span><span class="o">:</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">command</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl"><span class="nf">command.o </span><span class="o">:</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">command</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl"><span class="nf">display.o </span><span class="o">:</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">buffer</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl"><span class="nf">insert.o </span><span class="o">:</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">buffer</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl"><span class="nf">search.o </span><span class="o">:</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">buffer</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl"><span class="nf">files.o </span><span class="o">:</span> <span class="n">defs</span>.<span class="n">h</span> <span class="n">buffer</span>.<span class="n">h</span> <span class="n">command</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl"><span class="nf">utils.o </span><span class="o">:</span> <span class="n">defs</span>.<span class="n">h</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">.PHONY </span><span class="o">:</span> <span class="n">clean</span>
+</span></span><span class="line"><span class="cl"><span class="nf">clean </span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">        rm edit <span class="k">$(</span>objects<span class="k">)</span>
+</span></span></code></pre></div><p> </p>
+<h2 id="2-writing-rules">2. Writing Rules</h2>
+<p>Here is an example of a rule:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-make" data-lang="make"><span class="line"><span class="cl"><span class="nf">foo.o </span><span class="o">:</span> <span class="n">foo</span>.<span class="n">c</span> <span class="n">defs</span>.<span class="n">h</span>       <span class="c"># module for twiddling the frobs
+</span></span></span><span class="line"><span class="cl"><span class="c"></span>        cc -c -g foo.c
+</span></span></code></pre></div><p>Its target is foo.o and its prerequisites are foo.c and defs.h. It has one command in the recipe: ‘cc -c -g foo.c’. The recipe starts with a tab to identify it as a recipe.</p>
+<p>This rule says two things:</p>
+<ul>
+<li>How to decide whether foo.o is out of date: it is out of date if it does not exist, or if either foo.c or defs.h is more recent than it.</li>
+<li>How to update the file foo.o: by running cc as stated. The recipe does not explicitly mention defs.h, but we presume that foo.c includes it, and that is why defs.h was added to the prerequisites.</li>
+</ul>
+<h3 id="types-of-prerequisites">Types of Prerequisites</h3>
+<p>There are two different types of prerequisites understood by GNU make: normal prerequisites, described in the previous section, and order-only prerequisites.
+A normal prerequisite makes two statements:</p>
+<ul>
+<li>First, it imposes an order in which recipes will be invoked: <span style="color:orange">the recipes for all prerequisites of a target will be completed before the recipe for the target is started.</span></li>
+<li>Second, it imposes a dependency relationship: <span style="color:orange">if any prerequisite is newer than the target, then the target is considered out-of-date and must be rebuilt.</span></li>
+</ul>
+<p>Occasionally you may want to ensure that a prerequisite is built before a target, but without forcing the target to be updated if the prerequisite is updated. Order-only prerequisites are used to create this type of relationship. Order-only prerequisites can be specified by placing a pipe symbol (|) in the prerequisites list: any prerequisites to the left of the pipe symbol are normal; any prerequisites to the right are order-only:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-make" data-lang="make"><span class="line"><span class="cl"><span class="nf">targets </span><span class="o">:</span> <span class="n">normal</span>-<span class="n">prerequisites</span> <span class="p">|</span> <span class="n">order</span>-<span class="n">only</span>-<span class="n">prerequisites</span>
+</span></span></code></pre></div><p>Note that if you declare the same file to be both a normal and an order-only prerequisite, the normal prerequisite takes precedence (since they have a strict superset of the behavior of an order-only prerequisite).
+Order-only prerequisites are never checked when determining if the target is out of date; even order-only prerequisites marked as phony (see Phony Targets) will not cause the target to be rebuilt. Which means only normal-prerequisites&rsquo; timestamp will checked to determine if targets needed to be recompiled or not.</p>
+<p>Consider an example where your targets are to be placed in a separate directory, and that directory might not exist before make is run. In this situation, you want the directory to be created before any targets are placed into it but, because the timestamps on directories change whenever a file is added, removed, or renamed, we certainly don’t want to rebuild all the targets whenever the directory’s timestamp changes. One way to manage this is with order-only prerequisites: make the directory an order-only prerequisite on all the targets:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-make" data-lang="make"><span class="line"><span class="cl"><span class="nv">OBJDIR</span> <span class="o">:=</span> objdir
+</span></span><span class="line"><span class="cl"><span class="nv">OBJS</span> <span class="o">:=</span> <span class="k">$(</span>addprefix <span class="k">$(</span>OBJDIR<span class="k">)</span>/,foo.o bar.o baz.o<span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">$(OBJDIR)/%.o </span><span class="o">:</span> %.<span class="n">c</span>
+</span></span><span class="line"><span class="cl">        <span class="k">$(</span>COMPILE.c<span class="k">)</span> <span class="k">$(</span>OUTPUT_OPTION<span class="k">)</span> $&lt;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">all</span><span class="o">:</span> <span class="k">$(</span><span class="nv">OBJS</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">$(OBJS)</span><span class="o">:</span> <span class="p">|</span> <span class="k">$(</span><span class="nv">OBJDIR</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">$(OBJDIR)</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">        mkdir <span class="k">$(</span>OBJDIR<span class="k">)</span>
+</span></span></code></pre></div><h3 id="using-wildcard-characters-in-file-names">Using Wildcard Characters in File Names</h3>
+<p>Wildcard Examples:</p>
+<p>Wildcards can be used in the recipe of a rule, where they are expanded by the shell. For example, here is a rule to delete all the object files:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-make" data-lang="make"><span class="line"><span class="cl"><span class="nf">clean</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">        rm -f *.o
+</span></span></code></pre></div><p>Wildcards are also useful in the prerequisites of a rule. With the following rule in the makefile, ‘make print’ will print all the ‘.c’ files that have changed since the last time you printed them:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-make" data-lang="make"><span class="line"><span class="cl"><span class="nf">print</span><span class="o">:</span> *.<span class="n">c</span>
+</span></span><span class="line"><span class="cl">        lpr -p <span class="nv">$?</span>
+</span></span><span class="line"><span class="cl">        touch print
+</span></span></code></pre></div><p>This rule uses print as an empty target file; see Empty Target Files to Record Events. (The automatic variable ‘$?’ is used to print only those files that have changed; see Automatic Variables.)</p>
+<p>Wildcard expansion does not happen when you define a variable. Thus, if you write this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-make" data-lang="make"><span class="line"><span class="cl"><span class="nv">objects</span> <span class="o">=</span> *.o
+</span></span></code></pre></div><p>then the value of the variable objects is the actual string ‘*.o’. However, if you use the value of objects in a target or prerequisite, wildcard expansion will take place there. If you use the value of objects in a recipe, the shell may perform wildcard expansion when the recipe runs. To set objects to the expansion, instead use:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-make" data-lang="make"><span class="line"><span class="cl"><span class="nv">objects</span> <span class="o">:=</span> <span class="k">$(</span>wildcard *.o<span class="k">)</span>
+</span></span></code></pre></div><!-- 
+## Targets
+Make an all target to run multiple targets. Since this is the first rule listed, it will run by default if make is called without specifying a target.
+```make
+all: one two three
+one:
+	touch one
+two:
+	touch two
+three:
+	touch three
+clean:
+	rm -f one two three
+```
+## Multiple targets
+Here $@ is an automatic variable that contains the target name. Since there are two prerequisites, the commands will be run for f1.o and f2.o.
+```make
+all: f1.o f2.o
+
+f1.o f2.o:
+	echo $@
+# Equivalent to:
+# f1.o:
+#	 echo f1.o
+# f2.o:
+#	 echo f2.o
+```
+## * Wildcard
+"*" searches your filesystem for matching filenames. It may be used in the target, prerequisites, or in the wildcard function.
+```make
+# Print out file information about every .c file
+print: $(wildcard *.c)
+	ls -la  $?
+```
+
+```make
+wrong := *.o # Don't do this! '*' will not get expanded
+right := $(wildcard *.o)
+
+all: one two three four
+
+# Fails, because $(wrong) is the string "*.o"
+one: $(wrong)
+# Stays as *.o if there are no files that match this pattern :(
+two: *.o 
+# Works as you would expect! In this case, it does nothing.
+three: $(right)
+# Same as rule three
+four: $(wildcard *.o)
+```
+
+## Automatic Variables
+
+
+
+Source: https://www.gnu.org/software/make/manual/html_node
+
+
+ -->
+  </div>
+  <div class="art-foot">
+    <a href="../../index.html">← Back to Home</a>
+  </div>
+</main>
+
+<script>
+const r=document.documentElement,s=localStorage.getItem('theme');
+if(s)r.setAttribute('data-theme',s);
+document.getElementById('tb').onclick=()=>{
+  const c=r.getAttribute('data-theme'),d=matchMedia('(prefers-color-scheme:dark)').matches,
+  n=!c?(d?'light':'dark'):c==='dark'?'light':'dark';
+  r.setAttribute('data-theme',n);localStorage.setItem('theme',n)};
+</script>
+</body>
+</html>

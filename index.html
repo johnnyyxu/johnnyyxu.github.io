@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yao (John) Xu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+    :root{
+      --bg:#f2f2f7;
+      --mesh-1:rgba(0,122,255,.06);--mesh-2:rgba(175,82,222,.05);
+      --mesh-3:rgba(52,199,89,.04);--mesh-4:rgba(255,159,10,.035);
+      --mesh-5:rgba(255,45,85,.03);
+      --glass:rgba(255,255,255,.42);--glass-h:rgba(255,255,255,.62);
+      --glass-border:rgba(255,255,255,.6);--glass-border-b:rgba(0,0,0,.04);
+      --glass-sh:0 1px 3px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.05);
+      --glass-sh-h:0 6px 28px rgba(0,0,0,.09),0 0 1px rgba(0,0,0,.08);
+      --glass-blur:20px;--glass-spec:rgba(255,255,255,.85);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.55) 0%,transparent 42%);
+      --nav-bg:rgba(242,242,247,.6);
+      --ink:#1d1d1f;--ink-2:#48484a;--ink-3:#8e8e93;--ink-4:#aeaeb2;
+      --blue:#0071e3;--blue-s:rgba(0,113,227,.1);
+      --purple:#af52de;--purple-s:rgba(175,82,222,.1);
+      --green:#30d158;--green-s:rgba(48,209,88,.1);
+      --orange:#ff9f0a;--orange-s:rgba(255,159,10,.1);
+      --pink:#ff375f;--pink-s:rgba(255,55,95,.1);
+      --teal:#5ac8fa;--teal-s:rgba(90,200,250,.1);
+      --cmu-grad:linear-gradient(135deg,rgba(255,55,95,.12) 0%,rgba(175,82,222,.08) 100%);
+      --psu-grad:linear-gradient(135deg,rgba(0,113,227,.12) 0%,rgba(90,200,250,.06) 100%);
+      --page:1080px;--gut:32px;--r:20px;--r-sm:14px;
+      --sans:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+      --head:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    }
+
+    @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+      --bg:#000;
+      --mesh-1:rgba(0,122,255,.08);--mesh-2:rgba(175,82,222,.06);
+      --mesh-3:rgba(52,199,89,.045);--mesh-4:rgba(255,159,10,.035);
+      --mesh-5:rgba(255,45,85,.035);
+      --glass:rgba(255,255,255,.05);--glass-h:rgba(255,255,255,.09);
+      --glass-border:rgba(255,255,255,.08);--glass-border-b:rgba(255,255,255,.02);
+      --glass-sh:0 1px 3px rgba(0,0,0,.2),0 4px 16px rgba(0,0,0,.25),inset 0 .5px 0 rgba(255,255,255,.04);
+      --glass-sh-h:0 8px 32px rgba(0,0,0,.35),inset 0 .5px 0 rgba(255,255,255,.07);
+      --glass-blur:24px;--glass-spec:rgba(255,255,255,.12);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 42%);
+      --nav-bg:rgba(0,0,0,.5);
+      --ink:#f5f5f7;--ink-2:#a1a1a6;--ink-3:#6e6e73;--ink-4:#48484a;
+      --blue:#2997ff;--blue-s:rgba(41,151,255,.14);
+      --purple:#bf5af2;--purple-s:rgba(191,90,242,.14);
+      --green:#30d158;--green-s:rgba(48,209,88,.14);
+      --orange:#ff9f0a;--orange-s:rgba(255,159,10,.14);
+      --pink:#ff375f;--pink-s:rgba(255,55,95,.14);
+      --teal:#5ac8fa;--teal-s:rgba(90,200,250,.14);
+      --cmu-grad:linear-gradient(135deg,rgba(255,55,95,.18) 0%,rgba(175,82,222,.1) 100%);
+      --psu-grad:linear-gradient(135deg,rgba(0,113,227,.18) 0%,rgba(90,200,250,.08) 100%);
+    }}
+    :root[data-theme="dark"]{
+      --bg:#000;
+      --mesh-1:rgba(0,122,255,.08);--mesh-2:rgba(175,82,222,.06);
+      --mesh-3:rgba(52,199,89,.045);--mesh-4:rgba(255,159,10,.035);
+      --mesh-5:rgba(255,45,85,.035);
+      --glass:rgba(255,255,255,.05);--glass-h:rgba(255,255,255,.09);
+      --glass-border:rgba(255,255,255,.08);--glass-border-b:rgba(255,255,255,.02);
+      --glass-sh:0 1px 3px rgba(0,0,0,.2),0 4px 16px rgba(0,0,0,.25),inset 0 .5px 0 rgba(255,255,255,.04);
+      --glass-sh-h:0 8px 32px rgba(0,0,0,.35),inset 0 .5px 0 rgba(255,255,255,.07);
+      --glass-blur:24px;--glass-spec:rgba(255,255,255,.12);
+      --glass-shine:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 42%);
+      --nav-bg:rgba(0,0,0,.5);
+      --ink:#f5f5f7;--ink-2:#a1a1a6;--ink-3:#6e6e73;--ink-4:#48484a;
+      --blue:#2997ff;--blue-s:rgba(41,151,255,.14);
+      --purple:#bf5af2;--purple-s:rgba(191,90,242,.14);
+      --green:#30d158;--green-s:rgba(48,209,88,.14);
+      --orange:#ff9f0a;--orange-s:rgba(255,159,10,.14);
+      --pink:#ff375f;--pink-s:rgba(255,55,95,.14);
+      --teal:#5ac8fa;--teal-s:rgba(90,200,250,.14);
+      --cmu-grad:linear-gradient(135deg,rgba(255,55,95,.18) 0%,rgba(175,82,222,.1) 100%);
+      --psu-grad:linear-gradient(135deg,rgba(0,113,227,.18) 0%,rgba(90,200,250,.08) 100%);
+    }
+
+    html{scroll-behavior:smooth}
+    body{font-family:var(--sans);background:var(--bg);color:var(--ink);
+      -webkit-font-smoothing:antialiased;line-height:1.55;overflow-x:hidden;
+      transition:background .5s,color .3s}
+    ::selection{background:var(--blue);color:#fff}
+
+    body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+      background:
+        radial-gradient(ellipse 75% 50% at 5% 15%,var(--mesh-1) 0%,transparent 60%),
+        radial-gradient(ellipse 50% 55% at 92% 8%,var(--mesh-2) 0%,transparent 55%),
+        radial-gradient(ellipse 55% 45% at 72% 82%,var(--mesh-3) 0%,transparent 50%),
+        radial-gradient(ellipse 45% 35% at 12% 78%,var(--mesh-4) 0%,transparent 50%),
+        radial-gradient(ellipse 40% 40% at 50% 45%,var(--mesh-5) 0%,transparent 45%);
+    }
+
+    .pg{max-width:var(--page);margin:0 auto;padding:0 var(--gut)}
+
+    /* == GLASS == */
+    .g{background:var(--glass);
+      backdrop-filter:blur(var(--glass-blur)) saturate(180%);
+      -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(180%);
+      border:1px solid var(--glass-border);border-bottom-color:var(--glass-border-b);
+      border-radius:var(--r);box-shadow:var(--glass-sh);
+      position:relative;overflow:hidden;transition:all .4s cubic-bezier(.22,1,.36,1)}
+    .g::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+      background:linear-gradient(90deg,transparent 8%,var(--glass-spec) 50%,transparent 92%);
+      z-index:2;pointer-events:none}
+    .g::after{content:'';position:absolute;inset:0;background:var(--glass-shine);
+      pointer-events:none;z-index:1;border-radius:inherit}
+    .g:hover{background:var(--glass-h);box-shadow:var(--glass-sh-h)}
+    .g-hl{position:absolute;width:240px;height:240px;border-radius:50%;
+      background:radial-gradient(circle,var(--glass-spec) 0%,transparent 70%);
+      pointer-events:none;z-index:1;opacity:0;transition:opacity .3s;transform:translate(-50%,-50%)}
+    .g:hover .g-hl{opacity:.4}
+
+    /* == NAV == */
+    nav{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:200;
+      width:min(calc(100% - 32px),600px);
+      backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);
+      background:var(--nav-bg);border:1px solid var(--glass-border);
+      border-radius:980px;box-shadow:var(--glass-sh);transition:box-shadow .3s}
+    nav::before{content:'';position:absolute;top:0;left:18%;right:18%;height:1px;
+      background:linear-gradient(90deg,transparent,var(--glass-spec),transparent);pointer-events:none}
+    nav.scrolled{box-shadow:var(--glass-sh-h)}
+    .nv{padding:0 24px;height:46px;display:flex;align-items:center;justify-content:space-between}
+    .n-logo{font-family:var(--head);font-size:.95rem;font-weight:600;letter-spacing:-.02em;
+      color:var(--ink);text-decoration:none}
+    .n-mid{display:flex;gap:24px;list-style:none}
+    .n-mid a{font-size:.8rem;font-weight:400;color:var(--ink-3);text-decoration:none;transition:color .2s}
+    .n-mid a:hover{color:var(--ink)}
+    .n-end{display:flex;align-items:center;gap:2px}
+    .tb{display:flex;align-items:center;justify-content:center;width:32px;height:32px;
+      border-radius:50%;border:none;background:none;color:var(--ink-3);cursor:pointer;transition:all .2s}
+    .tb:hover{background:var(--glass-h);color:var(--ink)}
+    .is{display:none}.im{display:block}
+    @media(prefers-color-scheme:dark){
+      :root:not([data-theme="light"]) .is{display:block}
+      :root:not([data-theme="light"]) .im{display:none}
+    }
+    :root[data-theme="dark"] .is{display:block}
+    :root[data-theme="dark"] .im{display:none}
+    :root[data-theme="light"] .is{display:none}
+    :root[data-theme="light"] .im{display:block}
+    .hm{display:none;background:none;border:none;cursor:pointer;width:28px;height:28px;position:relative}
+    .hm span{display:block;width:15px;height:1.5px;background:var(--ink);position:absolute;left:50%;
+      transform:translateX(-50%);transition:all .3s}
+    .hm span:nth-child(1){top:9px}.hm span:nth-child(2){top:17px}
+    .hm.on span:nth-child(1){top:13px;transform:translateX(-50%) rotate(45deg)}
+    .hm.on span:nth-child(2){top:13px;transform:translateX(-50%) rotate(-45deg)}
+
+    /* == HERO == */
+    .hero{min-height:100vh;min-height:100svh;display:flex;align-items:center;padding:100px 0 60px}
+    .hero .pg{max-width:780px}
+    .h-in{animation:rise .75s ease both}
+    .h-tag{display:inline-flex;align-items:center;gap:8px;font-size:.76rem;font-weight:500;
+      color:var(--green);letter-spacing:.03em;margin-bottom:28px}
+    .h-tag .dot{width:6px;height:6px;border-radius:50%;background:var(--green);
+      box-shadow:0 0 0 3px var(--green-s);animation:pulse 2s ease-in-out infinite}
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 3px var(--green-s)}50%{box-shadow:0 0 0 7px transparent}}
+    .h-name{font-family:var(--head);font-size:clamp(2.4rem,5vw,3.4rem);font-weight:700;
+      letter-spacing:-.04em;line-height:1.1;margin-bottom:8px}
+    .h-role{font-size:1.1rem;font-weight:400;color:var(--ink-2);margin-bottom:28px}
+    .h-bio{font-size:1rem;color:var(--ink-3);line-height:1.75;max-width:600px;margin-bottom:40px}
+
+    /* == EDUCATION — section cards == */
+    .edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .edu-card{padding:28px;display:flex;align-items:flex-start;gap:16px}
+    .edu-card:hover{transform:translateY(-2px)}
+    .edu-logo{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;
+      justify-content:center;flex-shrink:0;position:relative;z-index:2;overflow:hidden}
+    .edu-card-body{position:relative;z-index:2}
+    .edu-card-school{font-family:var(--head);font-size:1.05rem;font-weight:600;letter-spacing:-.01em;
+      margin-bottom:4px}
+    .edu-card-deg{font-size:.9rem;color:var(--ink-2);margin-bottom:4px;line-height:1.4}
+    .edu-card-detail{font-size:.84rem;color:var(--ink-3);font-style:italic;margin-bottom:4px}
+    .edu-card-year{font-size:.78rem;color:var(--ink-4);font-weight:500}
+
+    /* == BUTTONS == */
+    .h-actions{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;border-radius:980px;
+      font-family:var(--sans);font-size:.84rem;font-weight:500;text-decoration:none;
+      transition:all .3s cubic-bezier(.22,1,.36,1);border:none;cursor:pointer}
+    .btn-f{background:var(--blue);color:#fff;box-shadow:0 2px 10px var(--blue-s)}
+    .btn-f:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 6px 20px var(--blue-s)}
+    .btn-g{background:var(--glass);color:var(--ink-2);border:1px solid var(--glass-border);
+      backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+    .btn-g:hover{background:var(--glass-h);color:var(--ink)}
+
+    /* == SECTIONS == */
+    .sec{padding:0 0 120px}
+    .sec-hd{margin-bottom:40px}
+    .sec-l{font-size:.72rem;font-weight:600;color:var(--ink-4);letter-spacing:.1em;
+      text-transform:uppercase;margin-bottom:8px}
+    .sec-t{font-family:var(--head);font-size:1.6rem;font-weight:700;letter-spacing:-.03em;line-height:1.2}
+
+    /* == SKILLS — domain cards == */
+    .sk-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .sk-card{padding:24px 26px}
+    .sk-card:hover{transform:translateY(-2px)}
+    .sk-card:last-child:nth-child(odd){grid-column:1 / -1;max-width:calc(50% - 7px)}
+    .sk-card-top{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;position:relative;z-index:2}
+    .sk-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;
+      justify-content:center;flex-shrink:0}
+    .sk-card-name{font-family:var(--head);font-size:.95rem;font-weight:600;letter-spacing:-.01em;margin-bottom:2px}
+    .sk-card-desc{font-size:.78rem;color:var(--ink-3);line-height:1.45}
+    .pills{display:flex;flex-wrap:wrap;gap:7px;position:relative;z-index:2}
+    .p{padding:6px 14px;border-radius:980px;font-size:.8rem;font-weight:400;color:var(--ink-2);
+      background:var(--glass);border:1px solid var(--glass-border);
+      backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+      transition:all .25s;cursor:default}
+    .p:hover{transform:translateY(-1px);color:var(--ink)}
+    .p:hover.pp{background:var(--pink-s);border-color:var(--pink)}
+    .p:hover.pt{background:var(--teal-s);border-color:var(--teal)}
+    .p:hover.pg2{background:var(--green-s);border-color:var(--green)}
+    .p:hover.po{background:var(--orange-s);border-color:var(--orange)}
+    .p:hover.pb{background:var(--blue-s);border-color:var(--blue)}
+
+    /* == EXPERIENCE == */
+    .el{display:flex;flex-direction:column;gap:14px}
+    .ei{padding:28px 32px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start}
+    .ei:hover{transform:translateY(-2px)}
+    .ei-top{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+    .ei-logo{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;
+      justify-content:center;font-family:var(--head);font-size:.72rem;font-weight:700;
+      flex-shrink:0;position:relative;z-index:2;overflow:hidden}
+    .ei-logo.la{background:var(--ink);color:var(--bg)}
+    .ei-logo.lc{background:var(--pink-s);color:var(--pink)}
+    .ei-logo.ln{background:var(--orange-s);color:var(--orange)}
+    .ei-logo.lt{background:var(--blue-s);color:var(--blue)}
+    .ei-co{font-family:var(--head);font-size:1.05rem;font-weight:600;letter-spacing:-.01em;
+      position:relative;z-index:2}
+    .ei-role{font-size:.88rem;color:var(--ink-2);margin-bottom:8px;position:relative;z-index:2}
+    .ei-desc{font-size:.84rem;color:var(--ink-3);line-height:1.65;max-width:520px;position:relative;z-index:2}
+    .ei-meta{text-align:right;position:relative;z-index:2;flex-shrink:0}
+    .ei-date{font-size:.76rem;color:var(--ink-4);font-weight:500;white-space:nowrap}
+    .ei-loc{font-size:.72rem;color:var(--ink-4);margin-top:3px}
+
+    /* == PROJECTS — uniform grid == */
+    .proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+
+    .pc{padding:28px;text-decoration:none;color:inherit;display:flex;flex-direction:column;
+      min-height:220px}
+    .pc:hover{transform:translateY(-3px)}
+
+    /* Colored inner glow per project category */
+    .pc .pc-glow{position:absolute;border-radius:50%;filter:blur(50px);opacity:.5;
+      pointer-events:none;z-index:0;width:100px;height:100px;bottom:-30px;right:-20px;
+      transition:opacity .4s}
+    .pc:hover .pc-glow{opacity:.8}
+    .pc.c-pink .pc-glow{background:rgba(255,55,95,.12)}
+    .pc.c-purple .pc-glow{background:rgba(175,82,222,.12)}
+    .pc.c-blue .pc-glow{background:rgba(0,122,255,.1)}
+    .pc.c-green .pc-glow{background:rgba(52,199,89,.1)}
+    .pc.c-orange .pc-glow{background:rgba(255,159,10,.1)}
+    .pc.c-teal .pc-glow{background:rgba(90,200,250,.1)}
+
+    .pc-tag{font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+      margin-bottom:auto;position:relative;z-index:2}
+    .pc-tag.t-pink{color:var(--pink)}.pc-tag.t-purple{color:var(--purple)}
+    .pc-tag.t-blue{color:var(--blue)}.pc-tag.t-green{color:var(--green)}
+    .pc-tag.t-orange{color:var(--orange)}.pc-tag.t-teal{color:var(--teal)}
+
+    .pc-name{font-family:var(--head);font-size:1.1rem;font-weight:600;letter-spacing:-.02em;
+      line-height:1.3;margin-bottom:8px;position:relative;z-index:2}
+    .pc-desc{font-size:.82rem;color:var(--ink-3);line-height:1.6;position:relative;z-index:2;
+      margin-bottom:14px}
+    .pc-techs{display:flex;gap:6px;flex-wrap:wrap;position:relative;z-index:2;margin-top:auto}
+    .pc-t{font-size:.7rem;padding:3px 9px;border-radius:6px;background:var(--glass);
+      border:1px solid var(--glass-border);color:var(--ink-3);font-weight:500}
+
+    .pc-arrow{position:absolute;top:24px;right:24px;width:28px;height:28px;border-radius:50%;
+      background:var(--glass);border:1px solid var(--glass-border);
+      display:flex;align-items:center;justify-content:center;color:var(--ink-4);z-index:2;
+      transition:all .3s cubic-bezier(.22,1,.36,1)}
+    .pc:hover .pc-arrow{color:#fff;transform:translate(2px,-2px)}
+    .pc.c-pink:hover .pc-arrow{background:var(--pink);border-color:var(--pink)}
+    .pc.c-purple:hover .pc-arrow{background:var(--purple);border-color:var(--purple)}
+    .pc.c-blue:hover .pc-arrow{background:var(--blue);border-color:var(--blue)}
+    .pc.c-green:hover .pc-arrow{background:var(--green);border-color:var(--green)}
+    .pc.c-orange:hover .pc-arrow{background:var(--orange);border-color:var(--orange)}
+    .pc.c-teal:hover .pc-arrow{background:var(--teal);border-color:var(--teal)}
+
+    /* == BLOG LIST == */
+    .blog-list{display:flex;flex-direction:column;gap:10px}
+    .bl-item{display:flex;align-items:center;gap:16px;padding:18px 24px;text-decoration:none;
+      color:inherit;border-radius:var(--r-sm)}
+    .bl-item:hover{transform:translateX(4px)}
+    .bl-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;
+      justify-content:center;flex-shrink:0;position:relative;z-index:2}
+    .bl-body{flex:1;min-width:0;position:relative;z-index:2}
+    .bl-title{font-family:var(--head);font-size:.95rem;font-weight:600;letter-spacing:-.01em}
+    .bl-sub{font-size:.8rem;color:var(--ink-3);margin-top:2px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .bl-arrow{color:var(--ink-4);flex-shrink:0;position:relative;z-index:2;
+      transition:transform .3s,color .3s}
+    .bl-item:hover .bl-arrow{transform:translateX(3px);color:var(--ink-2)}
+
+    /* == FOOTER == */
+    footer{padding:48px 0;text-align:center}
+    .fl{display:flex;justify-content:center;gap:28px;margin-bottom:14px}
+    .fl a{font-size:.82rem;color:var(--ink-4);text-decoration:none;transition:color .2s}
+    .fl a:hover{color:var(--blue)}
+    .fc{font-size:.74rem;color:var(--ink-4)}
+
+    /* == ANIM == */
+    @keyframes rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+    .rv{opacity:0;transform:translateY(24px);transition:all .6s cubic-bezier(.22,1,.36,1)}
+    .rv.show{opacity:1;transform:none}
+
+    /* == RESPONSIVE == */
+    @media(max-width:900px){
+      .edu-grid{grid-template-columns:1fr}
+      .sk-grid{grid-template-columns:1fr}
+      .sk-card:last-child:nth-child(odd){max-width:100%}
+      .proj-grid{grid-template-columns:repeat(2,1fr)}
+      .ei{grid-template-columns:1fr;gap:6px}
+      .ei-meta{text-align:left}
+    }
+    @media(max-width:600px){
+      :root{--gut:20px}
+      nav{width:calc(100% - 20px);top:8px}
+      .hero{padding-top:90px}
+      .h-name{font-size:2rem}
+      .n-mid{display:none}
+      .n-mid.on{display:flex;flex-direction:column;position:absolute;top:54px;left:-8px;right:-8px;
+        background:var(--nav-bg);backdrop-filter:blur(28px) saturate(200%);
+        -webkit-backdrop-filter:blur(28px) saturate(200%);
+        border:1px solid var(--glass-border);border-radius:var(--r);
+        padding:20px 24px;gap:14px;box-shadow:var(--glass-sh)}
+      .hm{display:block}
+      .proj-grid{grid-template-columns:1fr}
+      .h-actions{flex-direction:column}
+      .h-actions .btn{justify-content:center}
+    }
+  </style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="nv">
+    <a href="#" class="n-logo">Yao Xu</a>
+    <ul class="n-mid" id="nl">
+      <li><a href="#about">About</a></li>
+      <li><a href="#education">Education</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#experience">Experience</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#blog">Writing</a></li>
+    </ul>
+    <div class="n-end">
+      <button class="tb" id="tb" aria-label="Toggle theme">
+        <svg class="is" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="im" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="hm" id="hm" aria-label="Menu"><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+
+<section class="hero" id="about">
+  <div class="pg">
+    <div class="h-in">
+      <div class="h-tag"><span class="dot"></span>Software Development Engineer at Apple</div>
+      <h1 class="h-name">Yao (John) Xu</h1>
+      <p class="h-role">Systems &amp; Embedded Software Engineer</p>
+      <p class="h-bio">
+        I care about the full stack — from register-level
+        hardware interaction to the algorithms running on top.
+      </p>
+
+      <div class="h-actions">
+        <a href="https://github.com/YaoGH-code" target="_blank" class="btn btn-f">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          GitHub
+        </a>
+        <a href="https://www.linkedin.com/in/yao-xu-/" target="_blank" class="btn btn-g">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          LinkedIn
+        </a>
+        <a href="mailto:yaoxu@cmu.edu" class="btn btn-g">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Email
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="education">
+  <div class="pg">
+    <div class="sec-hd rv">
+      <div class="sec-l">Education</div>
+      <h2 class="sec-t">Academic Background</h2>
+    </div>
+    <div class="edu-grid">
+      <div class="edu-card g rv">
+        <div class="g-hl"></div>
+        <div class="edu-logo" style="background:var(--pink-s);color:var(--pink);font-family:var(--head);font-size:.78rem;font-weight:800">CMU</div>
+        <div class="edu-card-body">
+          <div class="edu-card-school">Carnegie Mellon University</div>
+          <div class="edu-card-deg">Master of Science in Electrical &amp; Computer Engineering</div>
+          <div class="edu-card-year">2022 — 2024 · Pittsburgh, Pennsylvania</div>
+        </div>
+      </div>
+      <div class="edu-card g rv">
+        <div class="g-hl"></div>
+        <div class="edu-logo" style="background:var(--blue-s);color:var(--blue);font-family:var(--head);font-size:.78rem;font-weight:800">PSU</div>
+        <div class="edu-card-body">
+          <div class="edu-card-school">The Pennsylvania State University</div>
+          <div class="edu-card-deg">Bachelor of Science in Computer Engineering</div>
+          <div class="edu-card-detail">Schreyer Honors College</div>
+          <div class="edu-card-year">2018 — 2022 · University Park, Pennsylvania</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="skills">
+  <div class="pg">
+    <div class="sec-hd rv">
+      <div class="sec-l">Skills</div>
+      <h2 class="sec-t">What I Work With</h2>
+    </div>
+    <div class="sk-grid">
+
+      <div class="sk-card g rv">
+        <div class="g-hl"></div>
+        <div class="sk-card-top">
+          <div class="sk-icon" style="background:var(--pink-s);color:var(--pink)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+          </div>
+          <div>
+            <div class="sk-card-name">Embedded &amp; Firmware</div>
+            <div class="sk-card-desc">Bare-metal to RTOS — register-level control, drivers, and real-time systems</div>
+          </div>
+        </div>
+        <div class="pills">
+          <span class="p pp">C</span><span class="p pp">C++</span><span class="p pp">ARM Assembly</span>
+          <span class="p pp">FreeRTOS</span><span class="p pp">ARM Cortex-M</span><span class="p pp">STM32</span>
+          <span class="p pp">GDB</span>
+        </div>
+      </div>
+
+      <div class="sk-card g rv">
+        <div class="g-hl"></div>
+        <div class="sk-card-top">
+          <div class="sk-icon" style="background:var(--teal-s);color:var(--teal)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+          </div>
+          <div>
+            <div class="sk-card-name">Wireless &amp; Connectivity</div>
+            <div class="sk-card-desc">Cellular, Wi-Fi and Bluetooth</div>
+          </div>
+        </div>
+        <div class="pills">
+          <span class="p pt">CoreBluetooth</span><span class="p pt">Bluetooth Low Energy</span>
+          <span class="p pt">Swift</span><span class="p pt">Wi-Fi</span>
+        </div>
+      </div>
+
+      <div class="sk-card g rv">
+        <div class="g-hl"></div>
+        <div class="sk-card-top">
+          <div class="sk-icon" style="background:var(--green-s);color:var(--green)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <div>
+            <div class="sk-card-name">Parallel &amp; High-Performance</div>
+            <div class="sk-card-desc">GPU computing, multi-threading, and distributed systems</div>
+          </div>
+        </div>
+        <div class="pills">
+          <span class="p pg2">CUDA</span><span class="p pg2">OpenMP</span><span class="p pg2">OpenMPI</span>
+          <span class="p pg2">x86 Assembly</span><span class="p pg2">RISC-V Assembly</span>
+        </div>
+      </div>
+
+      <div class="sk-card g rv">
+        <div class="g-hl"></div>
+        <div class="sk-card-top">
+          <div class="sk-icon" style="background:var(--orange-s);color:var(--orange)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          </div>
+          <div>
+            <div class="sk-card-name">Hardware Design</div>
+            <div class="sk-card-desc">RTL to silicon — processor design, verification, and FPGA prototyping</div>
+          </div>
+        </div>
+        <div class="pills">
+          <span class="p po">SystemVerilog</span><span class="p po">FPGA / Zynq</span>
+          <span class="p po">MIPS</span><span class="p po">RISC-V</span>
+        </div>
+      </div>
+
+      <div class="sk-card g rv">
+        <div class="g-hl"></div>
+        <div class="sk-card-top">
+          <div class="sk-icon" style="background:var(--blue-s);color:var(--blue)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <div>
+            <div class="sk-card-name">Software &amp; Infrastructure</div>
+            <div class="sk-card-desc">Application development, scripting, CI/CD, and cloud tooling</div>
+          </div>
+        </div>
+        <div class="pills">
+          <span class="p pb">Python</span><span class="p pb">Java</span><span class="p pb">JavaScript</span>
+          <span class="p pb">Bash</span><span class="p pb">MATLAB</span><span class="p pb">Git</span>
+          <span class="p pb">Linux Kernel</span><span class="p pb">Docker</span><span class="p pb">AWS</span>
+          <span class="p pb">Raspberry Pi</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="experience">
+  <div class="pg">
+    <div class="sec-hd rv">
+      <div class="sec-l">Experience</div>
+      <h2 class="sec-t">Work History</h2>
+    </div>
+    <div class="el">
+      <div class="ei g rv"><div class="g-hl"></div>
+        <div>
+          <div class="ei-top">
+            <div class="ei-logo la"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg></div>
+            <div class="ei-co">Apple</div>
+          </div>
+          <div class="ei-role">Software Development Engineer</div>
+          <p class="ei-desc">Wireless technologies</p>
+        </div>
+        <div class="ei-meta"><div class="ei-date">2024 — Present</div><div class="ei-loc">San Diego, CA</div></div>
+      </div>
+      <div class="ei g rv"><div class="g-hl"></div>
+        <div>
+          <div class="ei-top">
+            <div class="ei-logo lc">CMU</div>
+            <div class="ei-co">Carnegie Mellon University</div>
+          </div>
+          <div class="ei-role">Teaching Assistant — Embedded Systems (18-349)</div>
+          <p class="ei-desc">ARM Cortex-M development, FreeRTOS, peripheral drivers, and real-time system design.</p>
+        </div>
+        <div class="ei-meta"><div class="ei-date">Jan — May 2024</div><div class="ei-loc">Pittsburgh, PA</div></div>
+      </div>
+      <div class="ei g rv"><div class="g-hl"></div>
+        <div>
+          <div class="ei-top">
+            <div class="ei-logo ln">NXP</div>
+            <div class="ei-co">NXP Semiconductors</div>
+          </div>
+          <div class="ei-role">Software Engineering Intern</div>
+          <p class="ei-desc">Embedded software for i.MX application processors — low-level firmware and system optimization.</p>
+        </div>
+        <div class="ei-meta"><div class="ei-date">May — Aug 2023</div><div class="ei-loc">Austin, TX</div></div>
+      </div>
+      <div class="ei g rv"><div class="g-hl"></div>
+        <div>
+          <div class="ei-top">
+            <div class="ei-logo lt">T</div>
+            <div class="ei-co">Tencent</div>
+          </div>
+          <div class="ei-role">Software Engineering Intern</div>
+          <p class="ei-desc">Automated testing pipelines for a network intrusion prevention system (88% coverage). Performance analysis with wrk2 and JMeter.</p>
+        </div>
+        <div class="ei-meta"><div class="ei-date">May — Aug 2021</div><div class="ei-loc">Shenzhen, China</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="projects">
+  <div class="pg">
+    <div class="sec-hd rv">
+      <div class="sec-l">Projects</div>
+      <h2 class="sec-t">Selected Work</h2>
+    </div>
+    <div class="proj-grid">
+
+      <a class="pc c-pink g rv" href="post/os/index.html" target="_blank">
+        <div class="g-hl"></div><div class="pc-glow"></div>
+        <div class="pc-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+        <div class="pc-tag t-pink">Operating System</div>
+        <div class="pc-name">RISC-V OS Kernel</div>
+        <p class="pc-desc">kernel rewrite from MIT Xv6 — virtual memory, scheduling, syscalls.</p>
+        <div class="pc-techs"><span class="pc-t">C</span><span class="pc-t">RISC-V</span><span class="pc-t">Kernel</span></div>
+      </a>
+
+      <a class="pc c-purple g rv" href="post/uthread/index.html" target="_blank">
+        <div class="g-hl"></div><div class="pc-glow"></div>
+        <div class="pc-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+        <div class="pc-tag t-purple">Concurrency</div>
+        <div class="pc-name">Preemptive Thread Library</div>
+        <p class="pc-desc">User-level threading with preemptive scheduling and synchronization primitives.</p>
+        <div class="pc-techs"><span class="pc-t">C</span><span class="pc-t">x86</span><span class="pc-t">Threads</span></div>
+      </a>
+
+      <a class="pc c-blue g rv" href="post/mcpu/index.html" target="_blank">
+        <div class="g-hl"></div><div class="pc-glow"></div>
+        <div class="pc-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+        <div class="pc-tag t-blue">CPU Design</div>
+        <div class="pc-name">5-Stage MIPS CPU</div>
+        <p class="pc-desc">Pipelined processor in Verilog — hazard detection, forwarding, prediction.</p>
+        <div class="pc-techs"><span class="pc-t">Verilog</span><span class="pc-t">MIPS</span><span class="pc-t">FPGA</span></div>
+      </a>
+
+      <a class="pc c-green g rv" href="post/vmp_sim/index.html" target="_blank">
+        <div class="g-hl"></div><div class="pc-glow"></div>
+        <div class="pc-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+        <div class="pc-tag t-green">Systems</div>
+        <div class="pc-name">Virtual Memory &amp; Process Simulator</div>
+        <p class="pc-desc">Simulating page tables, TLB behavior, and process scheduling policies.</p>
+        <div class="pc-techs"><span class="pc-t">C</span><span class="pc-t">VM</span><span class="pc-t">Scheduling</span></div>
+      </a>
+
+      <a class="pc c-teal g rv" href="https://github.com/YaoGH-code/EchoSense" target="_blank">
+        <div class="g-hl"></div><div class="pc-glow"></div>
+        <div class="pc-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+        <div class="pc-tag t-teal">Wireless / DSP</div>
+        <div class="pc-name">EchoSense</div>
+        <p class="pc-desc">Acoustic echo localization and distance measurement via signal processing.</p>
+        <div class="pc-techs"><span class="pc-t">MATLAB</span><span class="pc-t">DSP</span><span class="pc-t">Acoustic</span></div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="blog">
+  <div class="pg">
+    <div class="sec-hd rv">
+      <div class="sec-l">Writing</div>
+      <h2 class="sec-t">Technical Notes &amp; Articles</h2>
+    </div>
+    <div class="blog-list">
+
+      <a class="bl-item g rv" href="post/pmaip/index.html" target="_blank">
+        <div class="g-hl"></div>
+        <div class="bl-icon" style="background:var(--orange-s);color:var(--orange)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        </div>
+        <div class="bl-body">
+          <div class="bl-title">Processor Microarchitecture</div>
+          <div class="bl-sub">Superscalar execution, out-of-order pipelines, and memory hierarchy</div>
+        </div>
+        <div class="bl-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </a>
+
+      <a class="bl-item g rv" href="post/com/index.html" target="_blank">
+        <div class="g-hl"></div>
+        <div class="bl-icon" style="background:var(--green-s);color:var(--green)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="bl-body">
+          <div class="bl-title">CUDA, OpenMP &amp; MPI</div>
+          <div class="bl-sub">N-Body simulators, GPU renderers, and notes on parallel paradigms</div>
+        </div>
+        <div class="bl-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </a>
+
+      <a class="bl-item g rv" href="post/locks/index.html" target="_blank">
+        <div class="g-hl"></div>
+        <div class="bl-icon" style="background:var(--purple-s);color:var(--purple)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div class="bl-body">
+          <div class="bl-title">About Locks</div>
+          <div class="bl-sub">Mutexes, spinlocks, and synchronization mechanisms</div>
+        </div>
+        <div class="bl-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </a>
+
+      <a class="bl-item g rv" href="post/x86_notes/index.html" target="_blank">
+        <div class="g-hl"></div>
+        <div class="bl-icon" style="background:var(--pink-s);color:var(--pink)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/></svg>
+        </div>
+        <div class="bl-body">
+          <div class="bl-title">x86 Notes</div>
+          <div class="bl-sub">Architecture reference, calling conventions, and instruction set notes</div>
+        </div>
+        <div class="bl-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </a>
+
+      <a class="bl-item g rv" href="post/makefile/index.html" target="_blank">
+        <div class="g-hl"></div>
+        <div class="bl-icon" style="background:var(--blue-s);color:var(--blue)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        </div>
+        <div class="bl-body">
+          <div class="bl-title">About Make</div>
+          <div class="bl-sub">Build systems, Makefile patterns, and compilation workflows</div>
+        </div>
+        <div class="bl-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </a>
+
+      <a class="bl-item g rv" href="post/leetcode/index.html" target="_blank">
+        <div class="g-hl"></div>
+        <div class="bl-icon" style="background:var(--teal-s);color:var(--teal)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
+        <div class="bl-body">
+          <div class="bl-title">Data Structures &amp; Algorithms</div>
+          <div class="bl-sub">C++ solutions and notes on classic problems</div>
+        </div>
+        <div class="bl-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="pg">
+    <div class="fl">
+      <a href="https://github.com/YaoGH-code" target="_blank">GitHub</a>
+      <a href="https://www.linkedin.com/in/yao-xu-/" target="_blank">LinkedIn</a>
+      <a href="mailto:yaoxu@cmu.edu">Email</a>
+    </div>
+    <p class="fc">&copy; 2025 Yao (John) Xu</p>
+  </div>
+</footer>
+
+<script>
+const r=document.documentElement,s=localStorage.getItem('theme');
+if(s)r.setAttribute('data-theme',s);
+document.getElementById('tb').onclick=()=>{
+  const c=r.getAttribute('data-theme'),d=matchMedia('(prefers-color-scheme:dark)').matches,
+  n=!c?(d?'light':'dark'):c==='dark'?'light':'dark';
+  r.setAttribute('data-theme',n);localStorage.setItem('theme',n)};
+matchMedia('(prefers-color-scheme:dark)').onchange=()=>{
+  if(!localStorage.getItem('theme'))r.removeAttribute('data-theme')};
+
+const nav=document.getElementById('nav');
+onscroll=()=>nav.classList.toggle('scrolled',scrollY>10);
+const hm=document.getElementById('hm'),nl=document.getElementById('nl');
+hm.onclick=()=>{hm.classList.toggle('on');nl.classList.toggle('on')};
+nl.querySelectorAll('a').forEach(a=>a.onclick=()=>{hm.classList.remove('on');nl.classList.remove('on')});
+
+// Glass highlight follow
+document.querySelectorAll('.g').forEach(c=>{
+  const h=c.querySelector('.g-hl');
+  if(!h)return;
+  c.onmousemove=e=>{const b=c.getBoundingClientRect();
+    h.style.left=(e.clientX-b.left)+'px';h.style.top=(e.clientY-b.top)+'px'};
+});
+
+// Scroll reveal
+const io=new IntersectionObserver(es=>{
+  es.forEach((e,i)=>{if(e.isIntersecting){
+    setTimeout(()=>e.target.classList.add('show'),(i%6)*70);io.unobserve(e.target)}})},
+  {threshold:.08,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.rv').forEach(e=>io.observe(e));
+
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.onclick=e=>{e.preventDefault();const t=document.querySelector(a.getAttribute('href'));
+  if(t)scrollTo({top:t.getBoundingClientRect().top+scrollY-80,behavior:'smooth'})}});
+</script>
+</body>
+</html>
